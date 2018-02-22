@@ -34,5 +34,8 @@ class CBOW:
     def load_model(self, parth_to_model):
         self.model = Word2Vec.load(parth_to_model)
 
+    def save_model(self):
+        print("not implemented yet")
+
     def __init__(self):
         self.model = None

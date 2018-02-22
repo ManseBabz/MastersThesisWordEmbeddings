@@ -18,10 +18,10 @@ This module contains multiple simple ensamble methods
 def result_unpacker(list_of_results):
     return_result = []
     for result_block in list_of_results:
-        return_result = result_block[0]
+        return_result = result_block
     return return_result
 
-def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words):
+def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, wanted_printed=False):
     models = [] # List of model-classes
     result = [] # List of results from the different predictors
     best_result = [None, 0] # Best result found
@@ -51,8 +51,10 @@ def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words):
         if(result.count(res)> best_result[1]): #Check if next result has a better "score"
             best_result=[res, result.count(res)] #If better score, overwrite best result
 
-    print(best_result)
-    return  best_result
+    if(wanted_printed==True):
+        print(word_list)
+        print(best_result)
+    return best_result
 
 
 """
@@ -69,4 +71,4 @@ def result_combinatrion_ensamble(params_list):
     The simple majority vote ensamble takes a 3 level array i.e. a tensor.
     The outer layer for defining what type of word-embedding to run. 
 """
-if __name__ == "__main__": simple_majority_vote_ensamble([['CBOW',[1,5,0,10,100,5,None,3]]], ['What', 'the'], 4)
+if __name__ == "__main__": simple_majority_vote_ensamble([['CBOW',[1,5,0,10,100,5,None,3]], ['CBOW',[1,5,1,100,100,5,None,3]], ['CBOW',[1,5,0,100,100,5,None,3]]], ['autonomous', 'individuals', 'mutual'], 4, wanted_printed=True)
