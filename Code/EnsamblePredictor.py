@@ -15,6 +15,12 @@ This module contains multiple simple ensamble methods
     predictors result is the "best result")
     This method returns the best result for a word, and the count for the word
 """
+def result_unpacker(list_of_results):
+    return_result = []
+    for result_block in list_of_results:
+        return_result = result_block[0]
+    return return_result
+
 def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words):
     models = [] # List of model-classes
     result = [] # List of results from the different predictors
@@ -34,15 +40,17 @@ def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words):
         Predict best word
     """
     for model in models:
-        print(model.predict(word_list=word_list, nwords=top_n_words))
         result.append(model.predict(word_list=word_list, nwords=top_n_words)) #Predict from set and add to result list
-    print(result)
+
     """
         Majority vote for best word
     """
+    print(result)
+    result = result_unpacker(result)
     for res in result:
         if(result.count(res)> best_result[1]): #Check if next result has a better "score"
             best_result=[res, result.count(res)] #If better score, overwrite best result
+
     print(best_result)
     return  best_result
 
@@ -61,4 +69,4 @@ def result_combinatrion_ensamble(params_list):
     The simple majority vote ensamble takes a 3 level array i.e. a tensor.
     The outer layer for defining what type of word-embedding to run. 
 """
-if __name__ == "__main__": simple_majority_vote_ensamble([['CBOW',[1,5,0,10,100,5,None,3]]], ['What', 'is'], 4)
+if __name__ == "__main__": simple_majority_vote_ensamble([['CBOW',[1,5,0,10,100,5,None,3]]], ['What', 'the'], 4)
