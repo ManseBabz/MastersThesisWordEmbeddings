@@ -28,8 +28,8 @@ class CBOW:
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         self.model.accuracy(dir_path + '/TestingSet/questions-words.txt')
 
-    def predict(self):
-        print("I can't take this anymore")
+    def predict(self, word_list, nwords=10):
+        return self.model.predict_output_word(word_list, topn=nwords)
 
     def load_model(self, parth_to_model):
         self.model = Word2Vec.load(parth_to_model)
