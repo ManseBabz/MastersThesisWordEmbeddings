@@ -7,11 +7,12 @@ from gensim.models import Word2Vec
 class Skip_Gram:
 
 
-    def get_model(self, hs =1, negative= 5, cbow_mean=0, iter= 10, size=100, min_count=5, max_vocab_size=None, workers=3, articles_to_learn=1000, dev_mode=False):
+    def get_model(self, hs =1, negative= 5, cbow_mean=0, iter= 10, size=100, min_count=5, max_vocab_size=1000000, workers=3, articles_to_learn=1000):
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        if(dev_mode):
+        if(self.dev_mode):
             sentences1 = MySentences(dir_path + '/DataSet')  # Gets all files from folder at location.
         else:
+            print("Training model, be aware this is on a real trainingset, so it might take a while")
             sentences1 = ZippedSentences(dir_path+'/RealDataSet/wiki_flat.zip', articles_to_learn) #Make train-data from a large sample of data using articles_to_learn articles
 
         CBOW_model = Word2Vec(sentences=sentences1, #Sentences to train from
