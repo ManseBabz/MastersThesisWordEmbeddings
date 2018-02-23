@@ -1,6 +1,6 @@
 import logging, os
 from LeaningAlgoImpl.Sentence import MySentences
-from gensim.models import Word2Vec
+from gensim.models import Word2Vec, KeyedVectors
 
 
 class Skip_Gram:
@@ -31,11 +31,13 @@ class Skip_Gram:
     def predict(self, word_list, nwords=10):
         return self.model.predict_output_word(word_list, topn=nwords)
 
-    def load_model(self, parth_to_model):
-        self.model = Word2Vec.load(parth_to_model)
+    def load_model(self, name):
+        dir_path = os.path.dirname(os.path.realpath(__file__))+"/Models/"+name
+        self.model = Word2Vec.load(dir_path)
 
     def save_model(self, name):
-        print("not implemented yet")
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        self.model.save(dir_path+"/Models/"+name)
 
     def __init__(self):
         self.model = None
