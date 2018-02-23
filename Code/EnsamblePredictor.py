@@ -21,15 +21,14 @@ def result_unpacker(list_of_results):
         return_result = result_block
     return return_result
 
-def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, wanted_printed=False):
-    models = [] # List of model-classes
+def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, wanted_printed=False, dev_mode=False):
     result = [] # List of results from the different predictors
     best_result = [None, 0] # Best result found
 
     """
         Setup of predictor classes
     """
-    models = ps.setup(leaner_list)
+    models = ps.setup(leaner_list, dev_mode)
 
     """
         Predict best word
@@ -66,4 +65,4 @@ def result_combinatrion_ensamble(params_list):
     The simple majority vote ensamble takes a 3 level array i.e. a tensor.
     The outer layer for defining what type of word-embedding to run. 
 """
-if __name__ == "__main__": simple_majority_vote_ensamble([['Skip_Gram',[1,5,0,10,100,5,None,3]]], ['autonomous', 'individuals', 'mutual'], 4, wanted_printed=True)
+if __name__ == "__main__": simple_majority_vote_ensamble([['Skip_Gram',[1,5,0,10,100,5,None,3]]], ['autonomous', 'individuals', 'mutual'], 4, wanted_printed=True, dev_mode=True)

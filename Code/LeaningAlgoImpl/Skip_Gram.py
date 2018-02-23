@@ -1,14 +1,19 @@
 import logging, os
-from LeaningAlgoImpl.Sentence import MySentences
-from gensim.models import Word2Vec, KeyedVectors
+from LeaningAlgoImpl.ToolsPackage.Sentence import MySentences
+from LeaningAlgoImpl.ToolsPackage.UnZipper import ZippedSentences
+from gensim.models import Word2Vec
 
 
 class Skip_Gram:
-    model = None
 
-    def get_model(self, hs =1, negative= 5, cbow_mean=0, iter= 10, size=100, min_count=5, max_vocab_size=None, workers=3):
+
+    def get_model(self, hs =1, negative= 5, cbow_mean=0, iter= 10, size=100, min_count=5, max_vocab_size=None, workers=3, articles_to_learn=1000, dev_mode=False):
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        sentences1 = MySentences(dir_path + '/DataSet')      # Gets all files from folder at location.
+        if(dev_mode):
+            sentences1 = MySentences(dir_path + '/DataSet')  # Gets all files from folder at location.
+        else:
+            sentences1 = ZippedSentences(dir_path+'/RealDataSet/wiki_flat.zip', articles_to_learn) #Make train-data from a large sample of data using articles_to_learn articles
+
         CBOW_model = Word2Vec(sentences=sentences1, #Sentences to train from
                               sg=0, #1 for CBOW, 0 for Skip-gram
                               hs=hs, #1 for hierarchical softmax and 0 and non-zero in negative argument then negative sampling is used.
@@ -32,12 +37,21 @@ class Skip_Gram:
         return self.model.predict_output_word(word_list, topn=nwords)
 
     def load_model(self, name):
-        dir_path = os.path.dirname(os.path.realpath(__file__))+"/Models/"+name
-        self.model = Word2Vec.load(dir_path)
+        if (self.dev_mode):
+            dir_path = os.path.dirname(os.path.realpath(__file__)) + "/DevModels/" + name
+            self.model = Word2Vec.load(dir_path)
+        else:
+            dir_path = os.path.dirname(os.path.realpath(__file__))+"/Models/"+name
+            self.model = Word2Vec.load(dir_path)
 
     def save_model(self, name):
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.model.save(dir_path+"/Models/"+name)
+        if(self.dev_mode):
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            self.model.save(dir_path + "/DevModels/" + name)
+        else:
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            self.model.save(dir_path+"/Models/"+name)
 
-    def __init__(self):
+    def __init__(self, dev_mode=False):
         self.model = None
+        self.dev_mode = dev_mode
