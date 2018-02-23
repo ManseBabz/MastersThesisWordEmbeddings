@@ -3,14 +3,14 @@ from LeaningAlgoImpl.Sentence import MySentences
 from gensim.models import Word2Vec
 
 
-class CBOW:
+class Skip_Gram:
     model = None
 
     def get_model(self, hs =1, negative= 5, cbow_mean=0, iter= 10, size=100, min_count=5, max_vocab_size=None, workers=3):
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         sentences1 = MySentences(dir_path + '/DataSet')      # Gets all files from folder at location.
         CBOW_model = Word2Vec(sentences=sentences1, #Sentences to train from
-                              sg=1, #1 for CBOW, 0 for Skip-gram
+                              sg=0, #1 for CBOW, 0 for Skip-gram
                               hs=hs, #1 for hierarchical softmax and 0 and non-zero in negative argument then negative sampling is used.
                               negative=negative, #0 for no negative sampling and above specifies how many noise words should be drawn. (Usually 5-20 is good).
                               cbow_mean=cbow_mean, #0 for sum of context vectors, 1 for mean of context vectors. Only used on CBOW.

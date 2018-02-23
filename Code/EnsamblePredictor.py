@@ -1,4 +1,5 @@
 import LeaningAlgoImpl.CBOW as cbow
+import predictor_setup as ps
 import os, logging
 """
 This module contains multiple simple ensamble methods
@@ -28,12 +29,7 @@ def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, wanted_pr
     """
         Setup of predictor classes
     """
-    for t in leaner_list:
-        if(t[0] == 'CBOW'):
-            i=t[1]
-            mod = cbow.CBOW()  # Initialize model
-            mod.get_model(hs =i[0], negative= i[1], cbow_mean=i[2], iter= i[3], size=i[4], min_count=i[5], max_vocab_size=i[6], workers=i[7]) #Train model
-            models.append(mod) #Add model class to list of trained model classes
+    models = ps.setup(leaner_list)
 
     """
         Predict best word
@@ -70,4 +66,4 @@ def result_combinatrion_ensamble(params_list):
     The simple majority vote ensamble takes a 3 level array i.e. a tensor.
     The outer layer for defining what type of word-embedding to run. 
 """
-if __name__ == "__main__": simple_majority_vote_ensamble([['CBOW',[1,5,0,10,100,5,None,3]], ['CBOW',[1,5,1,100,100,5,None,3]], ['CBOW',[1,5,0,100,100,5,None,3]]], ['autonomous', 'individuals', 'mutual'], 4, wanted_printed=True)
+if __name__ == "__main__": simple_majority_vote_ensamble([['Skip_Gram',[1,5,0,10,100,5,None,3]]], ['autonomous', 'individuals', 'mutual'], 4, wanted_printed=True)
