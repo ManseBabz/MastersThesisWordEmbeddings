@@ -5,7 +5,7 @@ from gensim.models import Word2Vec
 
 
 class CBOW:
-    def get_model(self, hs =1, negative= 5, cbow_mean=0, iter= 10, size=100, min_count=5, max_vocab_size=None, workers=3, articles_to_learn=1000):
+    def get_model(self, hs =1, negative= 5, cbow_mean=0, iter= 10, size=100, min_count=5, max_vocab_size=1000000, workers=3, articles_to_learn=1000):
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         if (self.dev_mode):
             sentences1 = MySentences(dir_path + '/DataSet')  # Gets all files from folder at location.
@@ -34,12 +34,20 @@ class CBOW:
         return self.model.predict_output_word(word_list, topn=nwords)
 
     def load_model(self, name):
-        dir_path = os.path.dirname(os.path.realpath(__file__)) + "/Models/" + name
-        self.model = Word2Vec.load(dir_path)
+        if (self.dev_mode):
+            dir_path = os.path.dirname(os.path.realpath(__file__)) + "/DevModels/" + name
+            self.model = Word2Vec.load(dir_path)
+        else:
+            dir_path = os.path.dirname(os.path.realpath(__file__))+"/Models/"+name
+            self.model = Word2Vec.load(dir_path)
 
     def save_model(self, name):
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.model.save(dir_path + "/Models/" + name)
+        if(self.dev_mode):
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            self.model.save(dir_path + "/DevModels/" + name)
+        else:
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            self.model.save(dir_path+"/Models/"+name)
 
     def __init__(self, dev_mode=False):
         self.model = None
