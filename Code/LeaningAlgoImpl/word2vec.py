@@ -1,7 +1,8 @@
 # import modules & set up logging
 
-import logging, os, zipfile, codecs
+import logging, os, zipfile, codecs, cProfile
 from gensim.models import Word2Vec
+from gensim.models import fasttext
 
 
 
@@ -85,14 +86,42 @@ class Skip_Gram:
         return Skip_Gram_model
 
 
+class Fast_Text:
+
+    def __init__(self, articles_to_learn):
+        self.articles_to_learn = articles_to_learn
+
+
+    def get_model(self):
+        zips = ZippedSentences('wiki_flat.zip', self.articles_to_learn) #Extract x number of articles from training set.
+        Fast_Text_model = fasttext.FastText(sentences=zips, #Sentences to train from
+                              sg=1, #0 for CBOW, 1 for Skip-gram
+                              hs=1, #1 for hierarchical softmax and 0 and non-zero in negative argument then negative sampling is used.
+                              negative=1, #0 for no negative sampling and above specifies how many noise words should be drawn. (Usually 5-20 is good).
+                              iter=10, #number of epochs.
+                              size=100, #feature vector dimensionality
+                              min_count=5, #minimum frequency of words required
+                              max_vocab_size=None, #How much RAM is allowed, 10 million words needs approx 1GB RAM. None = infinite RAM
+                              workers=3, #How many threads are started for training.
+                              min_n=3, #Minimum length of char n-grams for word representations, (4 means a word of 5 will be split into 4 parts, an extra beginning part and end part is added to words)
+                              max_n=6, #Maximum length of char n-grams
+                              word_ngrams=1 #1 means using char n-grams, 0 equals word2vec.
+                              )
+        return Fast_Text_model
+
+
+
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
-cbow = CBOW.get_model(CBOW, 10000)
-skipgram = Skip_Gram.get_model(Skip_Gram, 10000)
+skipper = Skip_Gram(1000)
+#cbow = CBOW.get_model(CBOW, 10000)
+#skipgram = Skip_Gram.get_model(skipper)
 
-cbow.accuracy(dir_path + '/TestingSet/questions-words.txt')
-skipgram.accuracy(dir_path + '/TestingSet/questions-words.txt')
+cProfile.run('skipgram = Skip_Gram.get_model(skipper)')
+
+#cbow.accuracy(dir_path + '/TestingSet/questions-words.txt')
+#skipgram.accuracy(dir_path + '/TestingSet/questions-words.txt')
 
