@@ -10,6 +10,7 @@ class CBOW:
         if (self.dev_mode):
             sentences1 = MySentences(dir_path + '/DataSet')  # Gets all files from folder at location.
         else:
+            print("Training model, be aware this is on a real trainingset, so it might take a while")
             sentences1 = ZippedSentences(dir_path+'/RealDataSet/wiki_flat.zip', articles_to_learn)#Make train-data from a large sample of data using articles_to_learn articles
         CBOW_model = Word2Vec(sentences=sentences1, #Sentences to train from
                               sg=1, #1 for CBOW, 0 for Skip-gram
