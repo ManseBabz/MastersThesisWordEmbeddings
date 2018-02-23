@@ -1,5 +1,4 @@
 import LeaningAlgoImpl.CBOW as cbow
-import StackingModelTrainer as l
 import os, logging
 """
 This module contains multiple simple ensamble methods
