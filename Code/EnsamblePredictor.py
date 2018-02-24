@@ -1,6 +1,6 @@
 import LeaningAlgoImpl.CBOW as cbow
 import predictor_setup as ps
-import os, logging
+import os, logging, operator
 """
 This module contains multiple simple ensamble methods
 """
@@ -30,6 +30,19 @@ def remove_probability_from_result_list(list_of_results):
         real_result.append(res[0])
     return real_result
 
+def contains(list_of_results, keyword):
+    truth_value = False
+    for string in list_of_results:
+        if(string == keyword):
+            truth_value =True
+    return truth_value
+
+def update_prob(list_of_results, key_word, prob_value):
+    for entry in list_of_results:
+        if(entry[0]==key_word):
+            entry[1] += prob_value
+    return list_of_results
+
 def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, training_articles=1000, wanted_printed=False, dev_mode=False):
     result = [] # List of results from the different predictors
     best_result = [None, 0] # Best result found
@@ -37,7 +50,7 @@ def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, training_
     """
         Setup of predictor classes
     """
-    models = ps.setup(leaner_list, dev_mode=dev_mode)
+    models = ps.setup(leaner_list, dev_mode=dev_mode, training_articles=1000)
 
     """
         Predict best word
@@ -48,9 +61,7 @@ def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, training_
     """
         Majority vote for best word
     """
-    #print(result)
     result = result_unpacker(result)
-    #print(result)
     result = remove_probability_from_result_list(result)
     for res in result:
         if(result.count(res)> best_result[1]): #Check if next result has a better "score"
@@ -63,10 +74,41 @@ def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, training_
 
 
 """
-    A better ensamble learner, where the results for
+    Ensamble learner which naively finds the most probable result by adding the probability from each model for a word
 """
-def result_combinatrion_ensamble(params_list):
-    print("not implemented yet")
+def result_combinatrion_ensamble(leaner_list, word_list, top_n_words, training_articles=1000, wanted_printed=False, dev_mode=False):
+    result = []  # List of results from the different predictors
+    best_result = [None, 0]  # Best result found
+
+    """
+        Setup of predictor classes
+    """
+    models = ps.setup(leaner_list, dev_mode=dev_mode, training_articles=1000)
+
+    """
+        Predict best word
+    """
+    for model in models:
+        result.append(model.predict(word_list=word_list, nwords=top_n_words))  # Predict from set and add to result list
+
+    """
+        Majority vote for best word
+    """
+    result = result_unpacker(result)
+    most_probable_result_storing = []
+    for res in result:
+        if(contains(most_probable_result_storing, res[0])):
+            update_prob(most_probable_result_storing, res[0], res[1])
+        else:
+            most_probable_result_storing.append(res)
+    most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
+    best_result=most_probable_result_storing[0]
+
+    if (wanted_printed == True):
+        print(word_list)
+        print(most_probable_result_storing)
+        print(best_result)
+    return best_result
 
 
 
@@ -87,7 +129,7 @@ def result_combinatrion_ensamble(params_list):
     7 - workers=workers, #How many threads are started for training.
     
 """
-if __name__ == "__main__": simple_majority_vote_ensamble([
+if __name__ == "__main__": result_combinatrion_ensamble([
     ['CBOW',[1,5,0,10,100,500,None,3]],
     ['CBOW', [2, 50, 0, 10, 100, 500, None, 3]],
     ['CBOW', [5, 5, 5, 10, 100, 5000, None, 3]],
@@ -98,4 +140,4 @@ if __name__ == "__main__": simple_majority_vote_ensamble([
     ['Skip_Gram', [2, 50, 0, 10, 100, 500, None, 3]],
     ['Skip_Gram', [5, 5, 5, 10, 100, 5000, None, 3]],
     ['Skip_Gram', [1, 500, 0, 10, 100, 5000, None, 3]],
-    ['Skip_Gram', [1, 5, 10, 50, 1000, 50, None, 3]]], ['who', 'had', 'they'], 4, training_articles=1000000, wanted_printed=True, dev_mode=False)
+    ['Skip_Gram', [1, 5, 10, 50, 1000, 50, None, 3]]], ['he', 'she', 'his'], 4, training_articles=1000000, wanted_printed=True, dev_mode=False)
