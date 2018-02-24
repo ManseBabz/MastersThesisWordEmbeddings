@@ -17,10 +17,18 @@ This module contains multiple simple ensamble methods
 """
 def result_unpacker(list_of_results):
     return_result = []
+    print(list_of_results)
     for result_block in list_of_results:
-        for result in result_block:
-            return_result.append(result)
+        if(result_block != None):
+            for result in result_block:
+                return_result.append(result)
     return return_result
+
+def remove_probability_from_result_list(list_of_results):
+    real_result = []
+    for res in list_of_results:
+        real_result.append(res[0])
+    return real_result
 
 def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, training_articles=1000, wanted_printed=False, dev_mode=False):
     result = [] # List of results from the different predictors
@@ -40,9 +48,10 @@ def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, training_
     """
         Majority vote for best word
     """
-    print(result)
+    #print(result)
     result = result_unpacker(result)
-    print(result)
+    #print(result)
+    result = remove_probability_from_result_list(result)
     for res in result:
         if(result.count(res)> best_result[1]): #Check if next result has a better "score"
             best_result=[res, result.count(res)] #If better score, overwrite best result
@@ -89,4 +98,4 @@ if __name__ == "__main__": simple_majority_vote_ensamble([
     ['Skip_Gram', [2, 50, 0, 10, 100, 500, None, 3]],
     ['Skip_Gram', [5, 5, 5, 10, 100, 5000, None, 3]],
     ['Skip_Gram', [1, 500, 0, 10, 100, 5000, None, 3]],
-    ['Skip_Gram', [1, 5, 10, 50, 1000, 50, None, 3]]], ['Man', 'king', 'woman'], 4, training_articles=1000000, wanted_printed=True, dev_mode=False)
+    ['Skip_Gram', [1, 5, 10, 50, 1000, 50, None, 3]]], ['who', 'had', 'they'], 4, training_articles=1000000, wanted_printed=True, dev_mode=False)
