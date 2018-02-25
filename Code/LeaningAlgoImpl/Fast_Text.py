@@ -53,6 +53,18 @@ class Fast_Text:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             self.model.save(dir_path + "/Models/" + name)
 
+    def finished_training(self):
+        self.finished_model = self.model.wv
+
+    def save_finished_model(self, name):
+        if (self.dev_mode):
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            self.finished_model.save(dir_path + "/DevModels/" + name)
+        else:
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            self.finished_model.save(dir_path + "/Models/" + name)
+
     def __init__(self, dev_mode=False):
         self.model = None
+        self.finished_model
         self.dev_mode = dev_mode
