@@ -15,7 +15,7 @@ class Skip_Gram:
             print("Training model, be aware this is on a real trainingset, so it might take a while")
             sentences1 = ZippedSentences(dir_path+'/RealDataSet/wiki_flat.zip', articles_to_learn) #Make train-data from a large sample of data using articles_to_learn articles
 
-        CBOW_model = Word2Vec(sentences=sentences1, #Sentences to train from
+            Skip_Gram_model = Word2Vec(sentences=sentences1, #Sentences to train from
                               sg=0, #1 for CBOW, 0 for Skip-gram
                               hs=hs, #1 for hierarchical softmax and 0 and non-zero in negative argument then negative sampling is used.
                               negative=negative, #0 for no negative sampling and above specifies how many noise words should be drawn. (Usually 5-20 is good).
@@ -27,7 +27,7 @@ class Skip_Gram:
                               workers=workers, #How many threads are started for training.
 
                               )
-        self.model = CBOW_model
+        self.model = Skip_Gram_model
 
     def acc(self):
         logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -53,6 +53,18 @@ class Skip_Gram:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             self.model.save(dir_path+"/Models/"+name)
 
+    def finished_training(self):
+        self.finished_model = self.model.wv
+
+    def save_finished_model(self, name):
+        if (self.dev_mode):
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            self.finished_model.save(dir_path + "/DevModels/" + name)
+        else:
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            self.finished_model.save(dir_path + "/Models/" + name)
+
     def __init__(self, dev_mode=False):
         self.model = None
+        self.finished_model = None
         self.dev_mode = dev_mode
