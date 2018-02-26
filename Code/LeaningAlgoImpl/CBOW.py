@@ -35,6 +35,7 @@ class CBOW:
         return self.model.predict_output_word(word_list, topn=nwords)
 
     def load_model(self, name):
+        print("Great you were able to load a model, no need to create a new one")
         if (self.dev_mode):
             dir_path = os.path.dirname(os.path.realpath(__file__)) + "/DevModels/" + name
             self.model = Word2Vec.load(dir_path)

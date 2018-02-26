@@ -33,7 +33,6 @@ class Fast_Text:
 
     def predict(self, word_list, nwords=10):
         print("TODO - this function dosn't work in FastText")
-        #return self.model.predict_output_word(word_list, topn=nwords)
 
     def load_model(self, name):
         print("Great you were able to load a model, no need to create a new one")
