@@ -1,5 +1,6 @@
 import LeaningAlgoImpl.CBOW as CBOW
 import LeaningAlgoImpl.Skip_Gram as Skip
+import LeaningAlgoImpl.Fast_Text as Fast_Text
 import os
 
 
@@ -20,7 +21,7 @@ def model_exists_checker(model_name, dev_mode):
     else:
         return False
 
-def setup(leaner_list, dev_mode, training_articles=1000):
+def setup(leaner_list, dev_mode, training_articles=1000, randomTrain=False):
     models = []
     for t in leaner_list:
         if (t[0] == 'CBOW'):
@@ -32,10 +33,10 @@ def setup(leaner_list, dev_mode, training_articles=1000):
             else:
                 i = t[1]
                 mod.get_model(hs=i[0], negative=i[1], cbow_mean=i[2], iter=i[3], size=i[4], min_count=i[5],
-                          max_vocab_size=i[6], workers=i[7], articles_to_learn=training_articles)  # Train CBOW model
+                          max_vocab_size=i[6], workers=i[7], articles_to_learn=training_articles, randomTrain=randomTrain)  # Train CBOW model
                 mod.save_model(model_name)
                 models.append(mod)  # Add model class to list of trained model classes
-        if (t[0] == 'Skip_Gram'):
+        elif (t[0] == 'Skip_Gram'):
             mod = Skip.Skip_Gram(dev_mode=dev_mode)  # Initialize CBOW model
             model_name = model_name_generator(t[0], t[1], training_articles)
             if model_exists_checker(model_name, dev_mode=dev_mode):
@@ -44,7 +45,22 @@ def setup(leaner_list, dev_mode, training_articles=1000):
             else:
                 i = t[1]
                 mod.get_model(hs=i[0], negative=i[1], cbow_mean=i[2], iter=i[3], size=i[4], min_count=i[5],
-                              max_vocab_size=i[6], workers=i[7], articles_to_learn=training_articles)  # Train model
+                              max_vocab_size=i[6], workers=i[7], articles_to_learn=training_articles, randomTrain=randomTrain)  # Train model
                 mod.save_model(model_name)
                 models.append(mod)  # Add model class to list of trained model classes
+        elif(t[0]=='Fast_Text'):
+            mod = Fast_Text.Fast_Text(dev_mode=dev_mode)  # Initialize CBOW model
+            model_name = model_name_generator(t[0], t[1], training_articles)
+            if model_exists_checker(model_name, dev_mode=dev_mode):
+                mod.load_model(model_name)  # Not finished
+                models.append(mod)
+            else:
+                print("lets train")
+                i = t[1]
+                mod.get_model(hs=i[0], negative=i[1], cbow_mean=i[2], iter=i[3], size=i[4], min_count=i[5],
+                              max_vocab_size=i[6], workers=i[7], articles_to_learn=training_articles, randomTrain=randomTrain)  # Train model
+                mod.save_model(model_name)
+                models.append(mod)  # Add model class to list of trained model classes
+        else:
+            print(t[0]+' is not a proper word embedding algorithm which I know')
     return models
