@@ -53,7 +53,7 @@ def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, training_
     best_result = [None, 0] # Best result found
 
     #Setup of predictor classes
-    models = ps.setup(leaner_list, dev_mode=dev_mode, training_articles=1000)
+    models = ps.setup(leaner_list, dev_mode=dev_mode, training_articles=training_articles)
 
     #Predict best word
     for model in models:
@@ -80,7 +80,7 @@ def result_combinatrion_ensamble(leaner_list, word_list, top_n_words, training_a
     best_result = [None, 0]  # Best result found
 
     #Setup of predictor classes
-    models = ps.setup(leaner_list, dev_mode=dev_mode, training_articles=1000)
+    models = ps.setup(leaner_list, dev_mode=dev_mode, training_articles=training_articles)
 
     #Predict best word
     for model in models:
@@ -106,8 +106,28 @@ def result_combinatrion_ensamble(leaner_list, word_list, top_n_words, training_a
 """
     Bootstrap aggregation model
 """
-def boot_strap_aggregator_predictor():
-    print("Not implemented yet")
+def boot_strap_aggregator_predictor(leaner_list, word_list, top_n_words, training_articles=1000, wanted_printed=False, dev_mode=False):
+    result = [] # List of results from the different predictors
+    best_result = [None, 0] # Best result found
+
+    #Setup of predictor classes
+    models = ps.setup(leaner_list, dev_mode=dev_mode, training_articles=training_articles, randomTrain=True)
+
+    #Predict best word
+    for model in models:
+        result.append(model.predict(word_list=word_list, nwords=top_n_words)) #Predict from set and add to result list
+
+    #Majority vote for best word
+    result = result_unpacker(result)
+    result = remove_probability_from_result_list(result)
+    for res in result:
+        if(result.count(res)> best_result[1]): #Check if next result has a better "score"
+            best_result=[res, result.count(res)] #If better score, overwrite best result
+
+    if(wanted_printed==True):
+        print(word_list)
+        print(best_result)
+    return best_result
 
 
 ####################################################################################################################################
@@ -129,15 +149,6 @@ def boot_strap_aggregator_predictor():
     7 - workers=workers, #How many threads are started for training.
     
 """
-if __name__ == "__main__": result_combinatrion_ensamble([
-    ['CBOW',[1,5,0,10,100,500,None,3]],
-    ['CBOW', [2, 50, 0, 10, 100, 500, None, 3]],
-    ['CBOW', [5, 5, 5, 10, 100, 5000, None, 3]],
-    ['CBOW', [1, 500, 0, 10, 100, 5000, None, 3]],
-    ['CBOW', [1, 5, 10, 50, 100, 5, None, 3]],
-    ['Skip_Gram',[1,5,0,10,100,5,None,3]],
-    ['Skip_Gram', [1, 5, 0, 10, 100, 500, None, 3]],
-    ['Skip_Gram', [2, 50, 0, 10, 100, 500, None, 3]],
-    ['Skip_Gram', [5, 5, 5, 10, 100, 5000, None, 3]],
-    ['Skip_Gram', [1, 500, 0, 10, 100, 5000, None, 3]],
-    ['Fast_Text', [1, 5, 10, 50, 1000, 50, None, 3]]], ['he', 'she', 'his'], 4, training_articles=1000000, wanted_printed=True, dev_mode=True)
+if __name__ == "__main__": boot_strap_aggregator_predictor([
+    ['CBOW',[1,5,0,10,100,500,None,3]]], ['he', 'she', 'his'], 4, training_articles=1000, wanted_printed=True, dev_mode=False)
+
