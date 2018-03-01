@@ -1,6 +1,6 @@
-import LeaningAlgoImpl.CBOW as cbow
 import predictor_setup as ps
-import os, logging, operator
+import os, operator
+from numpy import loadtxt
 """
 This module contains multiple ensamble methods
 """
@@ -155,16 +155,31 @@ def boot_strap_aggregator_predictor_with_weights(leaner_list, weight_list, posit
         else:
             most_probable_result_storing.append(res)
     most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
-
+    
     # Pick best result
-    return most_probable_result_storing[0]
+    if(most_probable_result_storing != []):
+        if (wanted_printed == True):
+            print(most_probable_result_storing[0])
+        return most_probable_result_storing[0]
+    else:
+        print("No result")
+        return []
 
 
 def stacking_model_trainer():
+    #TODO - Make a way to train the model
     print("Not implemented yet - will return weights")
 
-def stacking_model_predictor(leaner_list, positive_word_list, negative_word_list, training_articles=1000, wanted_printed=False):
-    weights = stacking_model_trainer()
+def stacking_model_predictor(leaner_list, positive_word_list, negative_word_list, training_articles=1000, wanted_printed=False, weight_file_param=None, weight_file_name="Simple_weight_file"):
+    if(weight_file_param == None):
+        weights = stacking_model_trainer()
+        print("save using "+weight_file_name)
+    elif(os.path.exists(weight_file_param)):
+        weights = loadtxt(weight_file_param, comments="#", delimiter=",", unpack=False)
+    else:
+        print("This weight model dosn't exist - please initialize it, with the correct weights")
+        return None
+
     result = boot_strap_aggregator_predictor_with_weights(leaner_list=leaner_list, weight_list=weights, positive_word_list=positive_word_list,
                                                           negative_word_list=negative_word_list, training_articles=training_articles, wanted_printed=wanted_printed)
     return result
@@ -194,8 +209,7 @@ if __name__ == "__main__": boot_strap_aggregator_predictor_with_weights([
     ['CBOW', [0, 5, 0, 60, 100, 500, None, 3]]],
     [1, 0.5, 6],
     ['he', 'she'],
-    ['this'],
+    ['what'],
     4,
     training_articles=1000,
     wanted_printed=True)
-
