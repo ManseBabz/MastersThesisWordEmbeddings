@@ -75,7 +75,7 @@ def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, training_
 """
     Ensamble learner which naively finds the most probable result by adding the probability from each model for a word
 """
-def result_combinatrion_ensamble(leaner_list, word_list, top_n_words, training_articles=1000, wanted_printed=False, dev_mode=False):
+def most_probable_ensamble(leaner_list, word_list, top_n_words, training_articles=1000, wanted_printed=False, dev_mode=False):
     result = []  # List of results from the different predictors
     best_result = [None, 0]  # Best result found
 
@@ -137,16 +137,28 @@ def boot_strap_aggregator_predictor_with_weights(leaner_list, weight_list, posit
     # Setup of predictor classes
     models = ps.setup(leaner_list, dev_mode=False, training_articles=training_articles, randomTrain=True)
 
-    # Predict best word
+    # Predict best word and calculate weightet probability for this word
     for i in range(0, len(models)):
-        result.append([models[i].predict(positive_word_list=positive_word_list,
-                                         negative_word_list=negative_word_list), weight_list[i]])  # Predict from set and add to result list
+        res = models[i].predict(positive_word_list=positive_word_list,
+                                         negative_word_list=negative_word_list)  # Predict from set and add to result list
+        for part_res in res:
+            temp_res = []
+            temp_res.append(part_res[0])
+            temp_res.append(part_res[1]*weight_list[i])
+            result.append(temp_res)
 
+    # Combine probability for results
+    most_probable_result_storing = []
+    for res in result:
+        if (contains(most_probable_result_storing, res[0])):
+            update_prob(most_probable_result_storing, res[0], res[1])
+        else:
+            most_probable_result_storing.append(res)
+    most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
 
-    #TODO I am here
+    # Pick best result
+    return most_probable_result_storing[0]
 
-    # Majority vote for best word
-    print(result)
 
 def stacking_model_trainer(leaner_list):
     print("Not implemented yet")
@@ -173,5 +185,14 @@ def stacking_model_predictor(leaner_list, positive_word_list, negative_word_list
     
 """
 if __name__ == "__main__": boot_strap_aggregator_predictor_with_weights([
-    ['CBOW',[1,5,0,10,100,500,None,3]]],[1], ['he', 'she'], ['dog'], 4, training_articles=1000, wanted_printed=True)
+    ['CBOW',[1,5,0,10,100,500,None,3]],
+    ['CBOW', [1, 5, 0, 10, 100, 500, None, 3]],
+    ['Skip_Gram', [1, 5, 0, 10, 100, 500, None, 3]],
+    ['CBOW', [0, 5, 0, 60, 100, 500, None, 3]]],
+    [1, 0.5, 6],
+    ['he', 'she'],
+    ['this'],
+    4,
+    training_articles=1000,
+    wanted_printed=True)
 
