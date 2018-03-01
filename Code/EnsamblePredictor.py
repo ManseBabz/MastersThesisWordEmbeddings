@@ -105,17 +105,19 @@ def result_combinatrion_ensamble(leaner_list, word_list, top_n_words, training_a
 
 """
     Bootstrap aggregation model
+    
+    This model dosn't have a development mode due to the random sampeling nature of the ensamble method
 """
-def boot_strap_aggregator_predictor(leaner_list, word_list, top_n_words, training_articles=1000, wanted_printed=False, dev_mode=False):
+def boot_strap_aggregator_predictor(leaner_list, positive_word_list, negative_word_list, top_n_words, training_articles=1000, wanted_printed=False):
     result = [] # List of results from the different predictors
     best_result = [None, 0] # Best result found
 
     #Setup of predictor classes
-    models = ps.setup(leaner_list, dev_mode=dev_mode, training_articles=training_articles, randomTrain=True)
+    models = ps.setup(leaner_list, dev_mode=False, training_articles=training_articles, randomTrain=True)
 
     #Predict best word
     for model in models:
-        result.append(model.predict(word_list=word_list, nwords=top_n_words)) #Predict from set and add to result list
+        result.append(model.predict(positive_word_list=positive_word_list, negative_word_list=negative_word_list)) #Predict from set and add to result list
 
     #Majority vote for best word
     result = result_unpacker(result)
@@ -125,11 +127,32 @@ def boot_strap_aggregator_predictor(leaner_list, word_list, top_n_words, trainin
             best_result=[res, result.count(res)] #If better score, overwrite best result
 
     if(wanted_printed==True):
-        print(word_list)
         print(best_result)
     return best_result
 
+def boot_strap_aggregator_predictor_with_weights(leaner_list, weight_list, positive_word_list, negative_word_list, top_n_words, training_articles=1000, wanted_printed=False):
+    result = []  # List of results from the different predictors
+    best_result = [None, 0]  # Best result found
 
+    # Setup of predictor classes
+    models = ps.setup(leaner_list, dev_mode=False, training_articles=training_articles, randomTrain=True)
+
+    # Predict best word
+    for i in range(0, len(models)):
+        result.append([models[i].predict(positive_word_list=positive_word_list,
+                                         negative_word_list=negative_word_list), weight_list[i]])  # Predict from set and add to result list
+
+
+    #TODO I am here
+
+    # Majority vote for best word
+    print(result)
+
+def stacking_model_trainer(leaner_list):
+    print("Not implemented yet")
+
+def stacking_model_predictor(leaner_list, positive_word_list, negative_word_list, top_n_words, training_articles=1000, wanted_printed=False):
+    print("Not implemented yet")
 ####################################################################################################################################
 #################################### Main method for testing pourpuse ##############################################################
 ####################################################################################################################################
@@ -149,6 +172,6 @@ def boot_strap_aggregator_predictor(leaner_list, word_list, top_n_words, trainin
     7 - workers=workers, #How many threads are started for training.
     
 """
-if __name__ == "__main__": boot_strap_aggregator_predictor([
-    ['CBOW',[1,5,0,10,100,500,None,3]]], ['he', 'she', 'his'], 4, training_articles=1000, wanted_printed=True, dev_mode=False)
+if __name__ == "__main__": boot_strap_aggregator_predictor_with_weights([
+    ['CBOW',[1,5,0,10,100,500,None,3]]],[1], ['he', 'she'], ['dog'], 4, training_articles=1000, wanted_printed=True)
 

@@ -7,13 +7,13 @@ from gensim.models import Word2Vec
 class Skip_Gram:
 
 
-    def get_model(self, hs =1, negative= 5, cbow_mean=0, iter= 10, size=100, min_count=5, max_vocab_size=1000000, workers=3, articles_to_learn=1000):
+    def get_model(self, hs =1, negative= 5, cbow_mean=0, iter= 10, size=100, min_count=5, max_vocab_size=1000000, workers=3, articles_to_learn=1000, randomTrain=False):
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         if(self.dev_mode):
             sentences1 = MySentences(dir_path + '/DataSet')  # Gets all files from folder at location.
         else:
             print("Training model, be aware this is on a real trainingset, so it might take a while")
-            sentences1 = ZippedSentences(dir_path+'/RealDataSet/wiki_flat.zip', articles_to_learn) #Make train-data from a large sample of data using articles_to_learn articles
+            sentences1 = ZippedSentences(dir_path+'/RealDataSet/wiki_flat.zip', articles_to_learn, randomTrain) #Make train-data from a large sample of data using articles_to_learn articles
 
             Skip_Gram_model = Word2Vec(sentences=sentences1, #Sentences to train from
                               sg=0, #1 for CBOW, 0 for Skip-gram
@@ -34,16 +34,17 @@ class Skip_Gram:
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         self.model.accuracy(dir_path + '/TestingSet/questions-words.txt')
 
-    def predict(self, word_list, nwords=10):
-        return self.model.predict_output_word(word_list, topn=nwords)
+    def predict(self, positive_word_list, negative_word_list):
+        return self.finished_model.most_similar(positive=positive_word_list, negative=negative_word_list)
 
     def load_model(self, name):
+        print("Great you were able to load a model, no need to create a new one")
         if (self.dev_mode):
             dir_path = os.path.dirname(os.path.realpath(__file__)) + "/DevModels/" + name
-            self.model = Word2Vec.load(dir_path)
+            self.finished_model = KeyedVectors.load(dir_path)
         else:
             dir_path = os.path.dirname(os.path.realpath(__file__))+"/Models/"+name
-            self.model = Word2Vec.load(dir_path)
+            self.finished_model = KeyedVectors.load(dir_path)
 
     def save_model(self, name):
         if(self.dev_mode):
@@ -66,5 +67,5 @@ class Skip_Gram:
 
     def __init__(self, dev_mode=False):
         self.model = None
-        self.finished_model = None
+        self.finished_model =None
         self.dev_mode = dev_mode
