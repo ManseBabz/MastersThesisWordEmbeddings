@@ -160,11 +160,14 @@ def boot_strap_aggregator_predictor_with_weights(leaner_list, weight_list, posit
     return most_probable_result_storing[0]
 
 
-def stacking_model_trainer(leaner_list):
-    print("Not implemented yet")
+def stacking_model_trainer():
+    print("Not implemented yet - will return weights")
 
-def stacking_model_predictor(leaner_list, positive_word_list, negative_word_list, top_n_words, training_articles=1000, wanted_printed=False):
-    print("Not implemented yet")
+def stacking_model_predictor(leaner_list, positive_word_list, negative_word_list, training_articles=1000, wanted_printed=False):
+    weights = stacking_model_trainer()
+    result = boot_strap_aggregator_predictor_with_weights(leaner_list=leaner_list, weight_list=weights, positive_word_list=positive_word_list,
+                                                          negative_word_list=negative_word_list, training_articles=training_articles, wanted_printed=wanted_printed)
+    return result
 ####################################################################################################################################
 #################################### Main method for testing pourpuse ##############################################################
 ####################################################################################################################################
