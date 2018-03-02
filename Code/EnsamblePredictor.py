@@ -1,6 +1,6 @@
 import predictor_setup as ps
 import os, operator
-from numpy import loadtxt
+import numpy as np
 """
 This module contains multiple ensamble methods
 """
@@ -155,7 +155,7 @@ def boot_strap_aggregator_predictor_with_weights(leaner_list, weight_list, posit
         else:
             most_probable_result_storing.append(res)
     most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
-    
+
     # Pick best result
     if(most_probable_result_storing != []):
         if (wanted_printed == True):
@@ -166,23 +166,30 @@ def boot_strap_aggregator_predictor_with_weights(leaner_list, weight_list, posit
         return []
 
 
-def stacking_model_trainer():
-    #TODO - Make a way to train the model
-    print("Not implemented yet - will return weights")
+def stacking_model_trainer(leaner_list, weight_file_name):
+    savepath = os.path.dirname(os.path.realpath(__file__))+"/LeaningAlgoImpl/Weight_models/"+weight_file_name
+    weights = []
+    # TODO - Make a way to train the model
+    learned_result_to_file = [leaner_list, weights]
+    np.save(savepath, learned_result_to_file)
+    return learned_result_to_file[1]
 
 def stacking_model_predictor(leaner_list, positive_word_list, negative_word_list, training_articles=1000, wanted_printed=False, weight_file_param=None, weight_file_name="Simple_weight_file"):
     if(weight_file_param == None):
-        weights = stacking_model_trainer()
+        weights = stacking_model_trainer(leaner_list, weight_file_name="Simple_weight_file")
         print("save using "+weight_file_name)
-    elif(os.path.exists(weight_file_param)):
-        weights = loadtxt(weight_file_param, comments="#", delimiter=",", unpack=False)
     else:
-        print("This weight model dosn't exist - please initialize it, with the correct weights")
-        return None
-
+        weights=weight_file_param
     result = boot_strap_aggregator_predictor_with_weights(leaner_list=leaner_list, weight_list=weights, positive_word_list=positive_word_list,
                                                           negative_word_list=negative_word_list, training_articles=training_articles, wanted_printed=wanted_printed)
     return result
+
+def loaded_stacking_model(stacking_model_file_path, positive_word_list, negative_word_list):
+    models_and_weights = np.load(stacking_model_file_path)
+    model_list=models_and_weights[0]
+    weight_list=models_and_weights[1]
+    res = stacking_model_predictor(leaner_list=model_list, positive_word_list=positive_word_list, negative_word_list=negative_word_list, training_articles=1000, wanted_printed=False, weight_file_param=weight_list)
+    return res
 ####################################################################################################################################
 #################################### Main method for testing pourpuse ##############################################################
 ####################################################################################################################################
