@@ -34,7 +34,8 @@ def setup(leaner_list, dev_mode, training_articles=1000, randomTrain=False):
                 i = t[1]
                 mod.get_model(hs=i[0], negative=i[1], cbow_mean=i[2], iter=i[3], size=i[4], min_count=i[5],
                           max_vocab_size=i[6], workers=i[7], articles_to_learn=training_articles, randomTrain=randomTrain)  # Train CBOW model
-                mod.save_model(model_name)
+                mod.finished_training()
+                mod.save_finished_model(model_name)
                 models.append(mod)  # Add model class to list of trained model classes
         elif (t[0] == 'Skip_Gram'):
             mod = Skip.Skip_Gram(dev_mode=dev_mode)  # Initialize CBOW model
@@ -46,7 +47,8 @@ def setup(leaner_list, dev_mode, training_articles=1000, randomTrain=False):
                 i = t[1]
                 mod.get_model(hs=i[0], negative=i[1], cbow_mean=i[2], iter=i[3], size=i[4], min_count=i[5],
                               max_vocab_size=i[6], workers=i[7], articles_to_learn=training_articles, randomTrain=randomTrain)  # Train model
-                mod.save_model(model_name)
+                mod.finished_training()
+                mod.save_finished_model(model_name)
                 models.append(mod)  # Add model class to list of trained model classes
         elif(t[0]=='Fast_Text'):
             mod = Fast_Text.Fast_Text(dev_mode=dev_mode)  # Initialize CBOW model
@@ -59,7 +61,8 @@ def setup(leaner_list, dev_mode, training_articles=1000, randomTrain=False):
                 i = t[1]
                 mod.get_model(hs=i[0], negative=i[1], cbow_mean=i[2], iter=i[3], size=i[4], min_count=i[5],
                               max_vocab_size=i[6], workers=i[7], articles_to_learn=training_articles, randomTrain=randomTrain)  # Train model
-                mod.save_model(model_name)
+                mod.finished_training()
+                mod.save_finished_model(model_name)
                 models.append(mod)  # Add model class to list of trained model classes
         else:
             print(t[0]+' is not a proper word embedding algorithm which I know')

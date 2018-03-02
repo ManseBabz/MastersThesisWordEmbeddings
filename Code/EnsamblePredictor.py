@@ -48,7 +48,8 @@ def update_prob(list_of_results, key_word, prob_value):
     predictors result is the "best result")
     This method returns the best result for a word, and the count for the word
 """
-def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, training_articles=1000, wanted_printed=False, dev_mode=False):
+def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, training_articles=1000,
+                                  wanted_printed=False, dev_mode=False):
     result = [] # List of results from the different predictors
     best_result = [None, 0] # Best result found
 
@@ -108,7 +109,8 @@ def most_probable_ensamble(leaner_list, word_list, top_n_words, training_article
     
     This model dosn't have a development mode due to the random sampeling nature of the ensamble method
 """
-def boot_strap_aggregator_predictor(leaner_list, positive_word_list, negative_word_list, top_n_words, training_articles=1000, wanted_printed=False):
+def boot_strap_aggregator_predictor(leaner_list, positive_word_list, negative_word_list, top_n_words,
+                                    training_articles=1000, wanted_printed=False):
     result = [] # List of results from the different predictors
     best_result = [None, 0] # Best result found
 
@@ -130,7 +132,8 @@ def boot_strap_aggregator_predictor(leaner_list, positive_word_list, negative_wo
         print(best_result)
     return best_result
 
-def boot_strap_aggregator_predictor_with_weights(leaner_list, weight_list, positive_word_list, negative_word_list, top_n_words, training_articles=1000, wanted_printed=False):
+def boot_strap_aggregator_predictor_with_weights(leaner_list, weight_list, positive_word_list, negative_word_list, top_n_words,
+                                                 training_articles=1000, wanted_printed=False):
     result = []  # List of results from the different predictors
     best_result = [None, 0]  # Best result found
 
@@ -174,7 +177,8 @@ def stacking_model_trainer(leaner_list, weight_file_name):
     np.save(savepath, learned_result_to_file)
     return learned_result_to_file[1]
 
-def stacking_model_predictor(leaner_list, positive_word_list, negative_word_list, training_articles=1000, wanted_printed=False, weight_file_param=None, weight_file_name="Simple_weight_file"):
+def stacking_model_predictor(leaner_list, positive_word_list, negative_word_list, training_articles=1000, wanted_printed=False,
+                             weight_file_param=None, weight_file_name="Simple_weight_file"):
     if(weight_file_param == None):
         weights = stacking_model_trainer(leaner_list, weight_file_name="Simple_weight_file")
         print("save using "+weight_file_name)
@@ -188,7 +192,8 @@ def loaded_stacking_model(stacking_model_file_path, positive_word_list, negative
     models_and_weights = np.load(stacking_model_file_path)
     model_list=models_and_weights[0]
     weight_list=models_and_weights[1]
-    res = stacking_model_predictor(leaner_list=model_list, positive_word_list=positive_word_list, negative_word_list=negative_word_list, training_articles=1000, wanted_printed=False, weight_file_param=weight_list)
+    res = stacking_model_predictor(leaner_list=model_list, positive_word_list=positive_word_list, negative_word_list=negative_word_list,
+                                   training_articles=1000, wanted_printed=False, weight_file_param=weight_list)
     return res
 ####################################################################################################################################
 #################################### Main method for testing pourpuse ##############################################################
