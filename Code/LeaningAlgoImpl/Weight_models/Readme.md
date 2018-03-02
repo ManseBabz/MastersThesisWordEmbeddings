@@ -1,0 +1,1 @@
+Don't remove this folder, it will contain files of weights and learners with parameters which can be loaded from the ensamble predictor.
