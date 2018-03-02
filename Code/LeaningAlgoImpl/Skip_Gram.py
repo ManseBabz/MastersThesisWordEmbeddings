@@ -2,6 +2,7 @@ import logging, os
 from LeaningAlgoImpl.ToolsPackage.Sentence import MySentences
 from LeaningAlgoImpl.ToolsPackage.UnZipper import ZippedSentences
 from gensim.models import Word2Vec
+from gensim.models import KeyedVectors
 
 
 class Skip_Gram:
@@ -35,7 +36,10 @@ class Skip_Gram:
         self.model.accuracy(dir_path + '/TestingSet/questions-words.txt')
 
     def predict(self, positive_word_list, negative_word_list):
-        return self.finished_model.most_similar(positive=positive_word_list, negative=negative_word_list)
+        try:
+            return self.finished_model.most_similar(positive=positive_word_list, negative=negative_word_list)
+        except KeyError:
+            return []
 
     def load_model(self, name):
         print("Great you were able to load a model, no need to create a new one")
