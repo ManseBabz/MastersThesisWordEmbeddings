@@ -65,5 +65,5 @@ class Fast_Text:
 
     def __init__(self, dev_mode=False):
         self.model = None
-        self.finished_model
+        self.finished_model =None
         self.dev_mode = dev_mode
