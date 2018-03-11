@@ -1,6 +1,8 @@
 import logging, os
 from LeaningAlgoImpl.ToolsPackage.Sentence import MySentences
 from LeaningAlgoImpl.ToolsPackage.UnZipper import ZippedSentences
+
+from gensim.models import KeyedVectors
 from gensim.models import fasttext
 
 
@@ -31,17 +33,20 @@ class Fast_Text:
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         self.model.accuracy(dir_path + '/TestingSet/questions-words.txt')
 
-    def predict(self, word_list, nwords=10):
-        print("TODO - this function dosn't work in FastText")
+    def predict(self, positive_word_list, negative_word_list):
+        try:
+            return self.finished_model.most_similar(positive=positive_word_list, negative=negative_word_list)
+        except KeyError:
+            return []
 
     def load_model(self, name):
         print("Great you were able to load a model, no need to create a new one")
         if (self.dev_mode):
             dir_path = os.path.dirname(os.path.realpath(__file__)) + "/DevModels/" + name
-            self.model = fasttext.load(dir_path)
+            self.finished_model = KeyedVectors.load(dir_path)
         else:
-            dir_path = os.path.dirname(os.path.realpath(__file__))+"/Models/"+name
-            self.model = fasttext.load(dir_path)
+            dir_path = os.path.dirname(os.path.realpath(__file__)) + "/Models/" + name
+            self.finished_model = KeyedVectors.load(dir_path)
 
     def save_model(self, name):
         if(self.dev_mode):
