@@ -14,7 +14,7 @@ import sys
 import logging
 import itertools
 
-import utils as utils
+from Our_FastText import utils as utils
 
 from six import PY3, iteritems, iterkeys, itervalues, string_types
 from six.moves import xrange

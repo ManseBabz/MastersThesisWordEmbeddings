@@ -8,7 +8,7 @@
 
 import logging
 import numpy as np
-import utils
+from Our_FastText import utils
 
 from numpy import zeros, dtype, float32 as REAL, ascontiguousarray, fromstring
 

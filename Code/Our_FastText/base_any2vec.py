@@ -6,16 +6,16 @@
 # Licensed under the GNU LGPL v2.1 - http://www.gnu.org/licenses/lgpl.html
 
 """Contains base classes required for implementing any2vec algorithms."""
-from gensim import utils
+from Our_FastText import utils
 import logging
 from timeit import default_timer
 import threading
 from six.moves import xrange
 from six import itervalues
-import matutils as matutils
+from Our_FastText import matutils as matutils
 from numpy import float32 as REAL, ones, random, dtype, zeros
 from types import GeneratorType
-from utils import deprecated
+from Our_FastText.utils import deprecated
 import warnings
 
 try:

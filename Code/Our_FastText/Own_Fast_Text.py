@@ -34,14 +34,14 @@ import struct
 import numpy as np
 from numpy import ones, vstack, empty, float32 as REAL, sum as np_sum
 
-from word2vec import Word2VecVocab, Word2VecTrainables, train_sg_pair, train_cbow_pair
-from keyedvectors import Vocab, FastTextKeyedVectors
-from base_any2vec import BaseWordEmbeddingsModel
-from utils_any2vec import _compute_ngrams, _ft_hash
+from Our_FastText.word2vec import Word2VecVocab, Word2VecTrainables, train_sg_pair, train_cbow_pair
+from Our_FastText.keyedvectors import Vocab, FastTextKeyedVectors
+from Our_FastText.base_any2vec import BaseWordEmbeddingsModel
+from Our_FastText.utils_any2vec import _compute_ngrams, _ft_hash
 
 from six import iteritems
-from utils import deprecated, call_on_class_only
-import utils as utils
+from Our_FastText.utils import deprecated, call_on_class_only
+from Our_FastText import utils as utils
 
 logger = logging.getLogger(__name__)
 

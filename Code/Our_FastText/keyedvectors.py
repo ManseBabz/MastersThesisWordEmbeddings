@@ -76,13 +76,14 @@ from numpy import dot, zeros, float32 as REAL, empty, memmap as np_memmap, \
     double, array, vstack, sqrt, newaxis, integer, \
     ndarray, sum as np_sum, prod, argmax, divide as np_divide
 import numpy as np
-import utils, matutils  # utility fnc for pickling, common scipy operations etc
-from dictionary import Dictionary
+from Our_FastText import utils
+from Our_FastText import matutils  # utility fnc for pickling, common scipy operations etc
+from Our_FastText.dictionary import Dictionary
 from six import string_types, integer_types
 from six.moves import xrange, zip
 from scipy import stats
-from utils import deprecated
-from utils_any2vec import _save_word2vec_format, _load_word2vec_format, _compute_ngrams
+from Our_FastText.utils import deprecated
+from Our_FastText.utils_any2vec import _save_word2vec_format, _load_word2vec_format, _compute_ngrams
 
 logger = logging.getLogger(__name__)
 

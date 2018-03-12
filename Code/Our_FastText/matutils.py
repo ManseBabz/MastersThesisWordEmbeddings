@@ -12,7 +12,7 @@ from __future__ import with_statement
 import logging
 import math
 
-import utils
+from Our_FastText import utils
 
 import numpy as np
 import scipy.sparse

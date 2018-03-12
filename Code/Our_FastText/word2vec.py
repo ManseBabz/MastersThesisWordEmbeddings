@@ -112,9 +112,9 @@ import threading
 import itertools
 import warnings
 
-from utils import keep_vocab_item, call_on_class_only
-from keyedvectors import Vocab, Word2VecKeyedVectors
-from base_any2vec import BaseWordEmbeddingsModel
+from Our_FastText.utils import keep_vocab_item, call_on_class_only
+from Our_FastText.keyedvectors import Vocab, Word2VecKeyedVectors
+from Our_FastText.base_any2vec import BaseWordEmbeddingsModel
 
 try:
     from queue import Queue, Empty
@@ -127,8 +127,9 @@ from numpy import exp, dot, zeros, random, dtype, float32 as REAL,\
 
 from scipy.special import expit
 
-import utils, matutils  # utility fnc for pickling, common scipy operations etc
-from utils import deprecated
+from Our_FastText import utils
+from Our_FastText import matutils  # utility fnc for pickling, common scipy operations etc
+from Our_FastText.utils import deprecated
 from six import iteritems, itervalues, string_types
 from six.moves import xrange
 
