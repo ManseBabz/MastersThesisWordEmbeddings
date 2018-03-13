@@ -215,11 +215,8 @@ def loaded_stacking_model(stacking_model_file_path, positive_word_list, negative
     
 """
 if __name__ == "__main__": boot_strap_aggregator_predictor_with_weights([
-    ['CBOW',[1,5,0,10,100,500,None,3]],
-    ['CBOW', [1, 5, 0, 10, 100, 500, None, 3]],
-    ['Skip_Gram', [1, 5, 0, 10, 100, 500, None, 3]],
-    ['CBOW', [0, 5, 0, 60, 100, 500, None, 3]]],
-    [1, 0.5, 6],
+    ['Special_Fast_Text',[1,5,0,10,100,500,None,3]]],
+    [1],
     ['he', 'she'],
     ['what'],
     4,
