@@ -23,5 +23,10 @@ class Finished_Models:
     def similarity(self, word1, word2):
         self.model.similarity(word1, word2) # 'woman', 'man' -> 0.73723527
 
+    def human_similarity_test(self):
+        logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        self.model.word_vectors.evaluate_word_pairs(dir_path + '/TestingSet/wordsim353.tsv')
+
     def __init__(self):
         self.model = None
