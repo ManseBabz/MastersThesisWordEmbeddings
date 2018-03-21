@@ -2,6 +2,8 @@ import logging, os
 from LeaningAlgoImpl.ToolsPackage.Sentence import MySentences
 from LeaningAlgoImpl.ToolsPackage.UnZipper import ZippedSentences
 
+from LeaningAlgoImpl import k_mediod
+
 from gensim.models import KeyedVectors
 from gensim.models import fasttext
 
@@ -67,6 +69,12 @@ class Fast_Text:
         else:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             self.finished_model.save(dir_path + "/Models/" + name)
+
+    def clustering_test(self):
+        mediod = k_mediod.k_mediod("", self.finished_model)
+        clusters, mediods = mediod.find_clusters(2)
+        print(clusters)
+        print(mediods)
 
     def __init__(self, dev_mode=False):
         self.model = None

@@ -30,8 +30,10 @@ class Finished_Models:
         self.model.word_vectors.evaluate_word_pairs(dir_path + '/TestingSet/wordsim353.tsv')
 
     def clustering_test(self):
-        mediod = k_mediod("", this)
-        mediod.find_clusters(2)
+        mediod = k_mediod.k_mediod("", self.finished_model)
+        clusters, mediods = mediod.find_clusters(2)
+        print(clusters)
+        print(mediods)
 
     def __init__(self):
         self.model = None

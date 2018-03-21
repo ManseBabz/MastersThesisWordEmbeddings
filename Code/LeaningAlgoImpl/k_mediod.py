@@ -3,15 +3,14 @@ from gensim.models import KeyedVectors
 
 class k_mediod:
 
-    def __init__(self, path_to_test, finished_model):
-        self.path = path_to_test
-        self.model = finished_model
+
 
     def find_clusters(self, k):
         wordses = ["hello", "what", "are", "you", "doing"]
-        return k_mediod(k, wordses)
+        clusters, mediods = k_mediod.k_mediods(self, wordses, k)
+        return clusters, mediods
 
-    def k_mediod(self, k, text_to_cluster):
+    def k_mediods(self, text_to_cluster, k):
 
         mediods = []
         clusters = []
@@ -21,27 +20,32 @@ class k_mediod:
             cluster.append(text_to_cluster[i])
             clusters.append(cluster)
 
-        clusters = assign_mediods(mediods, clusters, text_to_cluster)
+        clusters = k_mediod.assign_mediods(self, mediods, clusters, text_to_cluster)
 
-        previous_cost = total_cost(clusters, mediods)
+        print(clusters)
+
+        previous_cost = k_mediod.total_cost(self, clusters, mediods)
 
         new_cost = 0
         while new_cost < previous_cost:
-            clusters, mediods, new_cost = bla(clusters, mediods)
+            previous_cost = new_cost
+            clusters, mediods, new_cost = k_mediod.bla(self, clusters, mediods)
+
         return clusters, mediods
 
     def bla(self, clusters, mediods):
 
         old_clusters = clusters
         old_mediods = mediods
-        old_cost = total_cost(old_clusters, old_mediods)
+        old_cost = k_mediod.total_cost(self, old_clusters, old_mediods)
 
         for i in range(0, len(mediods)):
             for word in clusters[i]:
                 if word != mediods[i]:
                     mediods[i] = word
-                    clusters = reassign_clusters(mediods, clusters)
-                    cost = total_cost(clusters, mediods)
+                    clusters = k_mediod.reassign_clusters(self, mediods, clusters)
+                    cost = k_mediod.total_cost(self, clusters, mediods)
+                    print(cost)
                     if cost < old_cost:
                         old_clusters = clusters
                         old_mediods = mediods
@@ -61,7 +65,7 @@ class k_mediod:
         for cluster in clusters:
             for word in cluster:
                 words.append(word)
-        new_clusters = assign_mediods(mediods, new_clusters, words)
+        new_clusters = k_mediod.assign_mediods(self, mediods, new_clusters, words)
         return new_clusters
 
 
@@ -75,7 +79,7 @@ class k_mediod:
                     closets_mediod = mediod
                     dist_to_closets = dist_to_mediod
             for i in range(0, len(mediods)):
-                if mediods[i] == closets_mediod:
+                if mediods[i] == closets_mediod and mediods[i] != word:
                     clusters[i].append(word)
 
         return clusters
@@ -84,7 +88,7 @@ class k_mediod:
     def total_cost(self, clusters, mediods):
         total_cost = 0
         for i in range(0, len(mediods)):
-            total_cost += cost(clusters[i], mediods[i])
+            total_cost += k_mediod.cost(self, clusters[i], mediods[i])
         return total_cost
 
     def cost(self, cluster, mediod):
@@ -92,3 +96,7 @@ class k_mediod:
         for word in cluster:
             cluster_cost += abs(self.model.distance(mediod, word))
         return cluster_cost
+
+    def __init__(self, path_to_test, finished_model):
+        self.path = path_to_test
+        self.model = finished_model
