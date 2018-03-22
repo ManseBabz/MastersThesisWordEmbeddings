@@ -213,9 +213,16 @@ def loaded_stacking_model(stacking_model_file_path, positive_word_list, negative
     6 - max_vocab_size=max_vocab_size, #How much RAM is allowed, 10 million words needs approx 1GB RAM. None = infinite RAM
     7 - workers=workers, #How many threads are started for training.
     
+    
+    For special_fast_text
+    hs=i[0], negative=i[1], iter=i[2], size=i[3], min_count=i[4],
+                              max_vocab_size=i[5], workers=i[6], min_n=i[7], max_n=i[8], adaptive=i[9], word_ngrams=i[10]
+                              
+    
+    
 """
 if __name__ == "__main__": boot_strap_aggregator_predictor_with_weights([
-    ['Special_Fast_Text',[1,5,0,10,100,500,None,3]]],
+    ['Special_Fast_Text',[1,5,1,100,5,None,3,2,6,1,1]]],
     [1],
     ['he', 'she'],
     ['what'],
