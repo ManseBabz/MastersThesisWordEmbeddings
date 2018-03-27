@@ -1,0 +1,116 @@
+%Insert Related work text
+
+
+In this chapter we will discuss the work done in the field of word-embeddings, more precisely we will introduce the different methods which our own implementations are build upon. 
+Likewise we will introduce different ways to evaluate word embeddings since this has proven to be quiet difficult to do, because non-well-defined results of the many of the tasks 
+which word embeddings are useful for.
+
+
+
+\section{Neural networks}
+\subsection{Recurent neural networks}
+
+\section{Learning algorithms}
+
+Today algorithms for word embeddings can be divided into two categories, the sentence based algorithms and the character based ones. We aim toward implementing a hybrid of these two categories,
+and therefore much of our work is based upon previous implementations.
+
+
+
+\subsection{Skip-Gram}
+The general idea of the skip-gram model, is to predict the surrounding word given a context word. 
+So mathematically what we want is to maximise the log probability from the formula:
+
+\begin{equation}
+    
+	\frac{1}{T}\sum_{t=1}^T\sum_{-c \leq j \leq c, j \neq 0}log(p(w_{t+j}\mid w_t))
+
+\end{equation}
+
+
+
+\subsection{CBOW - Continuous Bag of Words}
+
+The CBOW model is build upon the idea, that you are suppose to predict a word given a context text. 
+
+
+
+\subsection{Fast-text}
+
+
+
+\subsection{Mimic}
+
+
+
+
+\section{Ensemble methods}
+
+Ensemble methods are build upon the philosophy that if one predictor is good, two is better and the more the merrier. The basics that makes ensemble methods better, than a single model, is that the multitude of models 
+will be able to express hypotheses even outside of the hypothesise space of the models individually. This comes from the fact that in complex real world problems, there are a huge risk of over-fitting a single model, 
+while in practice if the models used in the ensemble methods are diverse enough the ensemble method will not have the same risk of over-fitting.
+
+
+
+\subsection{Bagging}
+
+One of the standard methods of the ensemble methods, is bagging. The intuition behind bagging, or more correctly bootstrap aggregation, is to let each method in the ensemble framework train on some subset of a 
+training-set at allow each of these trained models vote on the result, with an equal say in the matter.\cite{zaki2014dataEnsamble}
+
+
+
+\subsection{Boosting}
+
+Boosting is another ensemble method, much like bagging it doesn't train all models on all data, first we start out doing normal training as in bagging. Now using cross validation, we find instances which are misclassified 
+we make these biased so there are more chance of these hard to classify examples becoming a part of the training set for the next iteration of model training.\cite{zaki2014dataEnsamble}
+
+
+
+Now this is most effective for weak classifiers/models since by constantly training on the difficult cases of for the classifiers, the end model will be well equipped for classifying the most difficult cases, while the easier 
+cases will be classified by the previous models trained using boosting, since the different model will work on different regions of the input space.\cite{zaki2014dataEnsamble}
+
+
+
+\subsection{Stacking}
+
+Now this leads to stacking. The intuition of stacking is to much like bagging have multiple learners, which generates models from random samples of the training-set. Now these models will be evaluated by now accurate they are, 
+and this is used to give a weight to how much each model can be trusted. 
+
+Now this suggest that stacking models can only be used for supervised learning. This is not entirely the case, as long as there is a well defined way to 
+evaluate a model, it is possible to train a stacking model, since the test/evaluation method can be used to determine which weights for the different predictors gives the best results, even though each model doesn't need to be 
+trained on supervised learning data. 
+
+
+
+\section{Evaluation methods}
+
+One of the greatest challenges in the field of word embeddings, is to decide how to actually evaluate word embeddings - since how do we do so well defined? A few ways have been suggested in literature, but all of them seems to 
+only evaluate a small part of what we would like to test, i.e. is the model able to understand semantics and syntax, or does the model see similarities as humans does. Also does it know that cars and motorbikes could go under 
+the category of vehicles while apples and pears would go under fruits.
+
+
+
+\subsection{Semantics and syntactic}
+
+A popular method of evaluating word vectors is analogies. Here the model is tasked with finding the word a that relates to word b, as word c relates to word d. In other words given the man -> king relation and the word woman, 
+respond with queen as the woman -> queen relation is the most similar. The way it works on word vectors is the vector closest to the vector $V=vector(king) - vector(man) + vector(woman)$ using cosine similarity, should be Vector(queen).
+This is done for a large number of word combinations where the expected word is given as a fourth parameter. The expected word is then compared to the word found most similar to the vector and if they are the same it is reported as 
+correct and otherwise as a failure. All these are then summarized to give a value for how big a fraction of the word combinations are correctly predicted. 
+
+
+
+\subsection{Human similarity}
+The human similarity test is a simple test where a group of humans have given a similarity value between two words. This value ranges from 0 to 10, including decimals, where 10 is the exact same word and 
+0 is two words that is as far from each other as possible. The human group's responses are then averaged to find a single value which is then compared to the word vector model's cosine similarity value between those words. The cosine 
+similarity value is timed by 100 to match the range of values from the human test. The cosine similarity is calculated as the dot product between the two vectors.
+
+
+
+\subsection{Categorical clustering}
+
+Categorical clustering is a test where the model is fed a large number of words and a specific amount of categories. The model is then tasked to create a specific amount of clusters based on the number of categories in the test set. 
+Using the k-mediod clustering approach with cosine similarity as distance measure, the model will then assign all the words to the different clusters. These clusters can then be measured for how pure they are with regard to the 
+categories. Completely pure means that all the words of a specific category and only those words are assigned to a single cluster. (Maybe add how k-mediod works and how we use it and the formula for cosine similarity)
+
+
+
