@@ -1,18 +1,18 @@
 %Insert Related work text
 
 
-In this chapter we will discuss the work done in the field of word-embeddings, more precisely we will introduce the different methods which our own implementations are build upon. 
-Likewise we will introduce different ways to evaluate word embeddings since this has proven to be quiet difficult to do, because non-well-defined results of the many of the tasks 
-which word embeddings are useful for.
+In this chapter we will discuss the work done in the field of word-embeddings, more precisely we will introduce the 
+different methods which our own implementations are build upon. 
+
+Likewise we will introduce different ways to evaluate word embeddings since this has proven to be quiet difficult 
+to do, because non-well-defined results of the many of the tasks which word embeddings are useful for.
 
 
-
-\section{Neural networks}
-\subsection{Recurent neural networks}
 
 \section{Learning algorithms}
 
-Today algorithms for word embeddings can be divided into two categories, the sentence based algorithms and the character based ones. We aim toward implementing a hybrid of these two categories,
+Today algorithms for word embeddings can be divided into two categories, the sentence based algorithms and the 
+character based ones. We aim toward implementing a hybrid of these two categories,
 and therefore much of our work is based upon previous implementations.
 
 
@@ -27,90 +27,148 @@ So mathematically what we want is to maximise the log probability from the formu
 
 \end{equation}
 
+The $p(w_{t+j}\mid w_t)$ is found by the use of a softmax method in the skipgram model, but due to the heavy computational
+load of calculating the "real" softmax often a heirarchical softmax is sufficient. The reason for the impracticality of 
+computing the real softmax is because the computation is proportional to W (the number of words used in the vocavulary) -
+now since this number is often quiet large ($10^5 - 10^7$ words).
+
+Another alternative is to use \ac{NEG} - which is a derivative of \ac{NCE}. The reason for the simplification of \ac{NEG}
+is leagal in the first place, is becaluse Skip-Gram only learnes high.quality vector representations, and therefore as long
+as \ac{NEG} retains the quality of the vector representations, it should affect the Skip-Gram model minimaly. Now we define
+\ac{NEG} as:
+\begin{equation}%Se side 4 for formel da denne skal reformuleres
+	log(\rho(v'_{w o}^T v_{wI})+\Sum_{i=1}^kE_{w_i~P_n(w)}[log(\rho(-v'_{w_i}^T v_wI)]
+\end{equation}
+Now this we can use to replace every $log P(w_O \mid w_I)$ term in the skipgram. Now we can use logistic regression to distinguish the traget word $w_O$ from
+the noise distribution, with the help of k samples from the noise distribution. Now what we gain by using \ac{NEG} insted of \ac{NCE} is that in \ac{NEG} we 
+do not need to provide both samples and the numerical probabilities of the noice distribution, but only k samples - which in trun makes \ac{NEG} easier to implement
+while we don't need the extra properties that \ac{NCE} offers.
 
 
 \subsection{CBOW - Continuous Bag of Words}
+The CBOW model is build upon the idea, that you are suppose to predict a word given a context text. This is build upon 
+the "normal" back of words technique. The intuition of the \ac{BOW} is that words from the trainingset has some proberbility
+of being chosen, now we can use this knowledge to, as an example decide wether an e-mail is spam or not. \cite{MikolowEfficientEstimationOfWordRepresentationsinVectorSpace}, \cite{BOWWiki}
 
-The CBOW model is build upon the idea, that you are suppose to predict a word given a context text. 
+%TODO - Mangler information om hvordan CBOW er forskelligt fra BOW - kræver revision
+Now in \ac{CBOW} the idea is to use a number of surrounding words, in order to predict a word. The way \ac{CBOW} achives this
+is by the use of N-grams on a normal \ac{BOW}. This results in the content of the training data is devided into chunchs which
+are than treated as normally, so when a word is predicted using \ac{CBOW}, the predictor finds all the chunchs with the context
+words that are given, and are thereby able to return the most proberble word from the context.
 
 
 
-\subsection{Fast-text}
 
+
+\subsection{Fast-text - A Skip-Gram for characther level information}
+The fast-text implementation, we have worked with, is the one pourposed by Bojanowski et al. The \ac{NLP} method is 
+compared to the normal Skip-Gram not centered around word level context, but is instead trying to make sense of 
+characther level information, in order to work on morphology rich languages such as Finnish. \cite{Fast-Text}
+
+In general the Fast-Text method differentiate itself from the standard Skip-gram, by its scoring function - which 
+focuses on the characther N-grams. The method associate a vector representation $z_g$ to each N-gram. This results in 
+a scoring function of:
+\begin{equation}
+	s(w, c) = \Sum_{g \in \Zeta_w}z_g^T v_c
+\end{equation}
+Where $\Zeta_w$ is the N-grams of which the word consists, and $v_c$ is the context N-grams. The strength of this model
+is that it allows sharing of representations across words.\\
+This method has proven to be able to find interesting patterns in subwords such as prefixes and suffixes, and the method
+is shown to preform well compared to a baseline of both models that doesn't take subword information into account as well
+as methods relying on morphological analysis (such as Skip-gram, CBOW, recursive neural network of Luong et al. (2013), 
+cbow of Qiu et al. (2014) and the morphological transformations of Soricut and Och (2015)) %TODO - Referer til disse artikler og læs dem 
 
 
 \subsection{Mimic}
+The general pourpuse of the Mimic method, is to be able to generate \ac{OOV} word embeddings compositionally, without
+the requierment of retraining on the original word embedding corpus. Now while the Fast-Text implementation made a predictor
+from scratch, the mimic model is a top level method for handeling \ac{OOV} instances for models with limited vocabularyes.
+
 
 
 
 
 \section{Ensemble methods}
-
-Ensemble methods are build upon the philosophy that if one predictor is good, two is better and the more the merrier. The basics that makes ensemble methods better, than a single model, is that the multitude of models 
-will be able to express hypotheses even outside of the hypothesise space of the models individually. This comes from the fact that in complex real world problems, there are a huge risk of over-fitting a single model, 
-while in practice if the models used in the ensemble methods are diverse enough the ensemble method will not have the same risk of over-fitting.
+Ensemble methods are build upon the philosophy that if one predictor is good, two is better and the more the merrier.
+The basics that makes ensemble methods better, than a single model, is that the multitude of models will be able to 
+express hypotheses even outside of the hypothesise space of the models individually. This comes from the fact that 
+in complex real world problems, there are a huge risk of over-fitting a single model, while in practice if the 
+models used in the ensemble methods are diverse enough the ensemble method will not have the same risk of 
+over-fitting.
 
 
 
 \subsection{Bagging}
-
-One of the standard methods of the ensemble methods, is bagging. The intuition behind bagging, or more correctly bootstrap aggregation, is to let each method in the ensemble framework train on some subset of a 
-training-set at allow each of these trained models vote on the result, with an equal say in the matter.\cite{zaki2014dataEnsamble}
+One of the standard methods of the ensemble methods, is bagging. The intuition behind bagging, or more correctly 
+bootstrap aggregation, is to let each method in the ensemble framework train on some subset of a training-set at 
+allow each of these trained models vote on the result, with an equal say in the matter.\cite{zaki2014dataEnsamble}
 
 
 
 \subsection{Boosting}
+Boosting is another ensemble method, much like bagging it doesn't train all models on all data, first we start out 
+doing normal training as in bagging. Now using cross validation, we find instances which are misclassified 
+we make these biased so there are more chance of these hard to classify examples becoming a part of the training 
+set for the next iteration of model training.\cite{zaki2014dataEnsamble}
 
-Boosting is another ensemble method, much like bagging it doesn't train all models on all data, first we start out doing normal training as in bagging. Now using cross validation, we find instances which are misclassified 
-we make these biased so there are more chance of these hard to classify examples becoming a part of the training set for the next iteration of model training.\cite{zaki2014dataEnsamble}
-
-
-
-Now this is most effective for weak classifiers/models since by constantly training on the difficult cases of for the classifiers, the end model will be well equipped for classifying the most difficult cases, while the easier 
-cases will be classified by the previous models trained using boosting, since the different model will work on different regions of the input space.\cite{zaki2014dataEnsamble}
+Now this is most effective for weak classifiers/models since by constantly training on the difficult cases of for 
+the classifiers, the end model will be well equipped for classifying the most difficult cases, while the easier 
+cases will be classified by the previous models trained using boosting, since the different model will work on 
+different regions of the input space.\cite{zaki2014dataEnsamble}
 
 
 
 \subsection{Stacking}
+Now this leads to stacking. The intuition of stacking is to much like bagging have multiple learners, which 
+generates models from random samples of the training-set. Now these models will be evaluated by now accurate they 
+are, and this is used to give a weight to how much each model can be trusted. 
 
-Now this leads to stacking. The intuition of stacking is to much like bagging have multiple learners, which generates models from random samples of the training-set. Now these models will be evaluated by now accurate they are, 
-and this is used to give a weight to how much each model can be trusted. 
-
-Now this suggest that stacking models can only be used for supervised learning. This is not entirely the case, as long as there is a well defined way to 
-evaluate a model, it is possible to train a stacking model, since the test/evaluation method can be used to determine which weights for the different predictors gives the best results, even though each model doesn't need to be 
-trained on supervised learning data. 
+Now this suggest that stacking models can only be used for supervised learning. This is not entirely the case, as 
+long as there is a well defined way to evaluate a model, it is possible to train a stacking model, since the 
+test/evaluation method can be used to determine which weights for the different predictors gives the best results, 
+even though each model doesn't need to be trained on supervised learning data. 
 
 
 
 \section{Evaluation methods}
-
-One of the greatest challenges in the field of word embeddings, is to decide how to actually evaluate word embeddings - since how do we do so well defined? A few ways have been suggested in literature, but all of them seems to 
-only evaluate a small part of what we would like to test, i.e. is the model able to understand semantics and syntax, or does the model see similarities as humans does. Also does it know that cars and motorbikes could go under 
-the category of vehicles while apples and pears would go under fruits.
+One of the greatest challenges in the field of word embeddings, is to decide how to actually evaluate word 
+embeddings - since how do we do so well defined? A few ways have been suggested in literature, but all of them 
+seems to only evaluate a small part of what we would like to test, i.e. is the model able to understand semantics 
+and syntax, or does the model see similarities as humans does. Also does it know that cars and motorbikes could go 
+under the category of vehicles while apples and pears would go under fruits.
 
 
 
 \subsection{Semantics and syntactic}
-
-A popular method of evaluating word vectors is analogies. Here the model is tasked with finding the word a that relates to word b, as word c relates to word d. In other words given the man -> king relation and the word woman, 
-respond with queen as the woman -> queen relation is the most similar. The way it works on word vectors is the vector closest to the vector $V=vector(king) - vector(man) + vector(woman)$ using cosine similarity, should be Vector(queen).
-This is done for a large number of word combinations where the expected word is given as a fourth parameter. The expected word is then compared to the word found most similar to the vector and if they are the same it is reported as 
-correct and otherwise as a failure. All these are then summarized to give a value for how big a fraction of the word combinations are correctly predicted. 
+A popular method of evaluating word vectors is analogies. Here the model is tasked with finding the word a that 
+relates to word b, as word c relates to word d. In other words given the man -> king relation and the word woman, 
+respond with queen as the woman -> queen relation is the most similar. The way it works on word vectors is the 
+vector closest to the vector $V=vector(king) - vector(man) + vector(woman)$ using cosine similarity, should be 
+Vector(queen).
+This is done for a large number of word combinations where the expected word is given as a fourth parameter. 
+The expected word is then compared to the word found most similar to the vector and if they are the same it is 
+reported as correct and otherwise as a failure. All these are then summarized to give a value for how big a 
+fraction of the word combinations are correctly predicted. 
 
 
 
 \subsection{Human similarity}
-The human similarity test is a simple test where a group of humans have given a similarity value between two words. This value ranges from 0 to 10, including decimals, where 10 is the exact same word and 
-0 is two words that is as far from each other as possible. The human group's responses are then averaged to find a single value which is then compared to the word vector model's cosine similarity value between those words. The cosine 
-similarity value is timed by 100 to match the range of values from the human test. The cosine similarity is calculated as the dot product between the two vectors.
+The human similarity test is a simple test where a group of humans have given a similarity value between two words. 
+This value ranges from 0 to 10, including decimals, where 10 is the exact same word and 0 is two words that is as 
+far from each other as possible. The human group's responses are then averaged to find a single value which is then 
+compared to the word vector model's cosine similarity value between those words. The cosine similarity value is 
+timed by 100 to match the range of values from the human test. The cosine similarity is calculated as the dot 
+product between the two vectors.
 
 
 
 \subsection{Categorical clustering}
-
-Categorical clustering is a test where the model is fed a large number of words and a specific amount of categories. The model is then tasked to create a specific amount of clusters based on the number of categories in the test set. 
-Using the k-mediod clustering approach with cosine similarity as distance measure, the model will then assign all the words to the different clusters. These clusters can then be measured for how pure they are with regard to the 
-categories. Completely pure means that all the words of a specific category and only those words are assigned to a single cluster. (Maybe add how k-mediod works and how we use it and the formula for cosine similarity)
+Categorical clustering is a test where the model is fed a large number of words and a specific amount of categories. 
+The model is then tasked to create a specific amount of clusters based on the number of categories in the test set. 
+Using the k-mediod clustering approach with cosine similarity as distance measure, the model will then assign all 
+the words to the different clusters. These clusters can then be measured for how pure they are with regard to the 
+categories. Completely pure means that all the words of a specific category and only those words are assigned to a 
+single cluster. (Maybe add how k-mediod works and how we use it and the formula for cosine similarity)
 
 
 
