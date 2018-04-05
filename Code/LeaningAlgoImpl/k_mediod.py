@@ -4,10 +4,9 @@ from gensim.models import KeyedVectors
 class k_mediod:
 
 
-
     def find_clusters(self, k):
-        wordses = ["hello", "what", "are", "you", "doing"]
-        clusters, mediods = k_mediod.k_mediods(self, wordses, k)
+        #words_to_cluster = ["hello", "what", "are", "you", "doing"]
+        clusters, mediods = k_mediod.k_mediods(self, self.words_to_cluster, k)
         return clusters, mediods
 
     def k_mediods(self, text_to_cluster, k):
@@ -97,6 +96,6 @@ class k_mediod:
             cluster_cost += abs(self.model.distance(mediod, word))
         return cluster_cost
 
-    def __init__(self, path_to_test, finished_model):
-        self.path = path_to_test
+    def __init__(self, words_to_cluster, finished_model):
+        self.words_to_cluster = words_to_cluster
         self.model = finished_model
