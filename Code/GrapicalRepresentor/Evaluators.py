@@ -1,4 +1,5 @@
 import os
+
 class singular_evaluator:
     def __init__(self, model):
         self.model = model
@@ -33,7 +34,20 @@ class plural_evaluater():
                         wrong[eval_index] += 1
         return correct, wrong
 
+def f1_mesure():
+    print("Not implemented yet")
 
+def precision():
+    print("Not implemented yet")
+
+def recall():
+    print("Not implemented yet")
+
+def Avg_word_rank():
+    print("Not implemented yet")
+
+def rare_or_non_rare_word():
+    print("Not implemented yet")
 
 
 if __name__ == "__main__": singular_evaluator.evaluate_using_questions_words()
