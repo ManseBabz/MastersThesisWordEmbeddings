@@ -35,13 +35,18 @@ class plural_evaluater():
         return correct, wrong
 
 def f1_mesure():
-    print("Not implemented yet")
+    pre = precision()
+    rec = recall()
+    f1 = 2*((pre*rec)/(pre+rec))
+    return f1
 
 def precision():
     print("Not implemented yet")
+    return 0
 
 def recall():
     print("Not implemented yet")
+    return 0
 
 def Avg_word_rank():
     print("Not implemented yet")
