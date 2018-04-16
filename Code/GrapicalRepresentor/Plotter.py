@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import textwrap as tw
 import os
+import Evaluators as eval
 
 """
     Tabeller (se efficient estimation artikel)
@@ -40,7 +41,8 @@ def create_evaluation_diagram(List_of_pairs_of_model_and_result):
 def micro_f1_plot():
     print("not implemented yet")
 
-def accuracy_for_training_size_plot():
+def accuracy_for_ensamble_size_plot():
+
     print("not implemented yet")
 
 def precision_recall_corelation():
