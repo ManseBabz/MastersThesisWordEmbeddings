@@ -39,162 +39,169 @@ def update_prob(list_of_results, key_word, prob_value):
 ####################################################################################################################################
 #################################### Ensamble Methods ##############################################################################
 ####################################################################################################################################
-"""
-    simple_majority_vote_ensamble tests if multiple models get the same result, and
-    chooses the best result from a majority vote i.e. the result which the most predictors
-    got.
-    If multiple equaly good results are found, the firs to raise above the others in count of
-    ocurences in predictions wins (if all predictors find different results, the first
-    predictors result is the "best result")
-    This method returns the best result for a word, and the count for the word
-"""
-def simple_majority_vote_ensamble(leaner_list, word_list, top_n_words, training_articles=1000,
-                                  wanted_printed=False, dev_mode=False):
-    result = [] # List of results from the different predictors
-    best_result = [None, 0] # Best result found
+class simple_ensamble:
+    def setup(self):
+        self.models = ps.setup(self.model_name_list, dev_mode=self.dev_mode, training_articles=self.training_articles)
 
-    #Setup of predictor classes
-    models = ps.setup(leaner_list, dev_mode=dev_mode, training_articles=training_articles)
+    def predict_best_word(self, positive_word_list, negative_word_list, top_n_words, wanted_printed):
+        result = []  # List of results from the different predictors
+        best_result = [None, 0]  # Best result found
+        # Predict best word
+        for model in self.models:
+            result.append(
+                model.predict(positive_word_list, negative_word_list, nwords=top_n_words))  # Predict from set and add to result list
+        result = result_unpacker(result)
+        result = remove_probability_from_result_list(result)
+        for res in result:
+            if (result.count(res) > best_result[1]):  # Check if next result has a better "score"
+                best_result = [res, result.count(res)]  # If better score, overwrite best result
 
-    #Predict best word
-    for model in models:
-        result.append(model.predict(word_list=word_list, nwords=top_n_words)) #Predict from set and add to result list
+        if (wanted_printed == True):
+            print(positive_word_list)
+            print(negative_word_list)
+            print(best_result)
+        return best_result
 
-    #Majority vote for best word
-    result = result_unpacker(result)
-    result = remove_probability_from_result_list(result)
-    for res in result:
-        if(result.count(res)> best_result[1]): #Check if next result has a better "score"
-            best_result=[res, result.count(res)] #If better score, overwrite best result
+    def sumed_proberbility_words(self, positive_word_list, negative_word_list, top_n_words, wanted_printed):
+        result = []  # List of results from the different predictors
+        best_result = [None, 0]  # Best result found
 
-    if(wanted_printed==True):
-        print(word_list)
-        print(best_result)
-    return best_result
+        for model in self.models:
+            result.append(
+                model.predict(positive_word_list, negative_word_list, nwords=top_n_words))  # Predict from set and add to result list
 
+        result = result_unpacker(result)
+        most_probable_result_storing = []
+        for res in result:
+            if (contains(most_probable_result_storing, res[0])):
+                update_prob(most_probable_result_storing, res[0], res[1])
+            else:
+                most_probable_result_storing.append(res)
+        most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
+        best_result = most_probable_result_storing[0]
 
-"""
-    Ensamble learner which naively finds the most probable result by adding the probability from each model for a word
-"""
-def most_probable_ensamble(leaner_list, word_list, top_n_words, training_articles=1000, wanted_printed=False, dev_mode=False):
-    result = []  # List of results from the different predictors
-    best_result = [None, 0]  # Best result found
+        if (wanted_printed == True):
+            print(positive_word_list)
+            print(negative_word_list)
+            print(most_probable_result_storing)
+            print(best_result)
+        return best_result
 
-    #Setup of predictor classes
-    models = ps.setup(leaner_list, dev_mode=dev_mode, training_articles=training_articles)
+    def __init__(self, model_name_list, dev_mode=False, training_articles=10000):
+        self.model_list=model_name_list
+        self.dev_mode = dev_mode
+        self.training_articles = training_articles
+        simple_ensamble.setup(model_name_list)
 
-    #Predict best word
-    for model in models:
-        result.append(model.predict(word_list=word_list, nwords=top_n_words))  # Predict from set and add to result list
-
-    #Naivly find the most probable result
-    result = result_unpacker(result)
-    most_probable_result_storing = []
-    for res in result:
-        if(contains(most_probable_result_storing, res[0])):
-            update_prob(most_probable_result_storing, res[0], res[1])
-        else:
-            most_probable_result_storing.append(res)
-    most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
-    best_result=most_probable_result_storing[0]
-
-    if (wanted_printed == True):
-        print(word_list)
-        print(most_probable_result_storing)
-        print(best_result)
-    return best_result
 
 """
     Bootstrap aggregation model
     
     This model dosn't have a development mode due to the random sampeling nature of the ensamble method
 """
-def boot_strap_aggregator_predictor(leaner_list, positive_word_list, negative_word_list, top_n_words,
-                                    training_articles=1000, wanted_printed=False):
-    result = [] # List of results from the different predictors
-    best_result = [None, 0] # Best result found
+class boot_strap_aggregator:
+    def setup(self):
+        self.models = ps.setup(self.model_name_list, training_articles=self.training_articles)
 
-    #Setup of predictor classes
-    models = ps.setup(leaner_list, dev_mode=False, training_articles=training_articles, randomTrain=True)
+    def predict_majority_vote(self, positive_word_list, negative_word_list, top_n_words, wanted_printed):
+        result = []  # List of results from the different predictors
+        best_result = [None, 0]  # Best result found
+        # Predict best word
+        for model in self.models:
+            result.append(
+                model.predict(positive_word_list, negative_word_list, nwords=top_n_words))  # Predict from set and add to result list
+        result = result_unpacker(result)
+        result = remove_probability_from_result_list(result)
+        for res in result:
+            if (result.count(res) > best_result[1]):  # Check if next result has a better "score"
+                best_result = [res, result.count(res)]  # If better score, overwrite best result
 
-    #Predict best word
-    for model in models:
-        result.append(model.predict(positive_word_list=positive_word_list, negative_word_list=negative_word_list)) #Predict from set and add to result list
-
-    #Majority vote for best word
-    result = result_unpacker(result)
-    result = remove_probability_from_result_list(result)
-    for res in result:
-        if(result.count(res)> best_result[1]): #Check if next result has a better "score"
-            best_result=[res, result.count(res)] #If better score, overwrite best result
-
-    if(wanted_printed==True):
-        print(best_result)
-    return best_result
-
-def boot_strap_aggregator_predictor_with_weights(leaner_list, weight_list, positive_word_list, negative_word_list, top_n_words,
-                                                 training_articles=1000, wanted_printed=False):
-    result = []  # List of results from the different predictors
-    best_result = [None, 0]  # Best result found
-
-    # Setup of predictor classes
-    models = ps.setup(leaner_list, dev_mode=False, training_articles=training_articles, randomTrain=True)
-
-    # Predict best word and calculate weightet probability for this word
-    for i in range(0, len(models)):
-        res = models[i].predict(positive_word_list=positive_word_list,
-                                         negative_word_list=negative_word_list)  # Predict from set and add to result list
-        for part_res in res:
-            temp_res = []
-            temp_res.append(part_res[0])
-            temp_res.append(part_res[1]*weight_list[i])
-            result.append(temp_res)
-
-    # Combine probability for results
-    most_probable_result_storing = []
-    for res in result:
-        if (contains(most_probable_result_storing, res[0])):
-            update_prob(most_probable_result_storing, res[0], res[1])
-        else:
-            most_probable_result_storing.append(res)
-    most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
-
-    # Pick best result
-    if(most_probable_result_storing != []):
         if (wanted_printed == True):
-            print(most_probable_result_storing[0])
-        return most_probable_result_storing[0]
-    else:
-        print("No result")
-        return []
+            print(positive_word_list)
+            print(negative_word_list)
+            print(best_result)
+        return best_result
+
+    def predict_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed):
+        result = []  # List of results from the different predictors
+        best_result = [None, 0]  # Best result found
+
+        for model in self.models:
+            result.append(
+                model.predict(positive_word_list, negative_word_list, nwords=top_n_words))  # Predict from set and add to result list
+
+        result = result_unpacker(result)
+        most_probable_result_storing = []
+        for res in result:
+            if (contains(most_probable_result_storing, res[0])):
+                update_prob(most_probable_result_storing, res[0], res[1])
+            else:
+                most_probable_result_storing.append(res)
+        most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
+        best_result = most_probable_result_storing[0]
+
+        if (wanted_printed == True):
+            print(positive_word_list)
+            print(negative_word_list)
+            print(most_probable_result_storing)
+            print(best_result)
+        return best_result
+
+    def predict_weighted_sum_proberbility(self, weight_list, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
+        result = []  # List of results from the different predictors
+        best_result = [None, 0]  # Best result found
+        # Predict best word and calculate weightet probability for this word
+        for i in range(0, len(self.models)):
+            res = self.models[i].predict(positive_word_list=positive_word_list,
+                                    negative_word_list=negative_word_list)  # Predict from set and add to result list
+            for part_res in res:
+                temp_res = []
+                temp_res.append(part_res[0])
+                temp_res.append(part_res[1] * weight_list[i])
+                result.append(temp_res)
+
+        # Combine probability for results
+        most_probable_result_storing = []
+        for res in result:
+            if (contains(most_probable_result_storing, res[0])):
+                update_prob(most_probable_result_storing, res[0], res[1])
+            else:
+                most_probable_result_storing.append(res)
+        most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
+
+        # Pick best result
+        if (most_probable_result_storing != []):
+            if (wanted_printed == True):
+                print(positive_word_list)
+                print(negative_word_list)
+                print(most_probable_result_storing[0])
+            return most_probable_result_storing[0]
+        else:
+            print("No result")
+            return []
+
+    def __init__(self, model_name_list, training_articles=10000):
+        self.model_list=model_name_list
+        self.training_articles = training_articles
+        boot_strap_aggregator.setup(model_name_list)
 
 
-def stacking_model_trainer(leaner_list, weight_file_name):
-    savepath = os.path.dirname(os.path.realpath(__file__))+"/LeaningAlgoImpl/Weight_models/"+weight_file_name
-    weights = []
-    # TODO - Make a way to train the model
-    learned_result_to_file = [leaner_list, weights]
-    np.save(savepath, learned_result_to_file)
-    return learned_result_to_file[1]
+class Stackingmodel:
+    def stacking_model_trainer(leaner_list, weight_file_name):
+        savepath = os.path.dirname(os.path.realpath(__file__))+"/LeaningAlgoImpl/Weight_models/"+weight_file_name
+        weights = []
+        # TODO - Make a way to train the model
+        learned_result_to_file = [leaner_list, weights]
+        np.save(savepath, learned_result_to_file)
+        return learned_result_to_file[1]
 
-def stacking_model_predictor(leaner_list, positive_word_list, negative_word_list, training_articles=1000, wanted_printed=False,
-                             weight_file_param=None, weight_file_name="Simple_weight_file"):
-    if(weight_file_param == None):
-        weights = stacking_model_trainer(leaner_list, weight_file_name="Simple_weight_file")
-        print("save using "+weight_file_name)
-    else:
-        weights=weight_file_param
-    result = boot_strap_aggregator_predictor_with_weights(leaner_list=leaner_list, weight_list=weights, positive_word_list=positive_word_list,
-                                                          negative_word_list=negative_word_list, training_articles=training_articles, wanted_printed=wanted_printed)
-    return result
+    def loaded_stacking_model(self, stacking_model_file_path, positive_word_list, negative_word_list):
+        models_and_weights = np.load(stacking_model_file_path)
+        self.model_list=models_and_weights[0]
+        self.weight_list=models_and_weights[1]
 
-def loaded_stacking_model(stacking_model_file_path, positive_word_list, negative_word_list):
-    models_and_weights = np.load(stacking_model_file_path)
-    model_list=models_and_weights[0]
-    weight_list=models_and_weights[1]
-    res = stacking_model_predictor(leaner_list=model_list, positive_word_list=positive_word_list, negative_word_list=negative_word_list,
-                                   training_articles=1000, wanted_printed=False, weight_file_param=weight_list)
-    return res
+    def __init__(self, model_list):
+        self.model_list=model_list
 ####################################################################################################################################
 #################################### Main method for testing pourpuse ##############################################################
 ####################################################################################################################################
@@ -221,11 +228,3 @@ def loaded_stacking_model(stacking_model_file_path, positive_word_list, negative
     
     
 """
-if __name__ == "__main__": boot_strap_aggregator_predictor_with_weights([
-    ['Special_Fast_Text',[1,5,1,100,5,None,3,2,6,1,1]]],
-    [1],
-    ['he', 'she'],
-    ['what'],
-    4,
-    training_articles=1000,
-    wanted_printed=True)
