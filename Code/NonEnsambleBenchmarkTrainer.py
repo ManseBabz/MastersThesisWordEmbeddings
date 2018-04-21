@@ -56,3 +56,5 @@ def train_models():
                        max_vocab_size=10000000, workers=3, articles_to_learn=1000000, randomTrain=True)
         Fast_Text.save_model(model_name)
         print("FastText train-time " + str(time.time() - start_time))
+
+if __name__ == "__main__": train_models()
