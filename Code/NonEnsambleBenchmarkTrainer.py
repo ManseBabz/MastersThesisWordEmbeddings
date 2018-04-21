@@ -24,7 +24,7 @@ def model_exists_checker(model_name, dev_mode):
 
 def train_models():
     CBOW = CB.CBOW(dev_mode=False)
-    model_name = model_name_generator('CBOW', [1, 10, 1, 10, 1000, 5, 10000000], 1000000)
+    model_name="CBOW_Benchmark"
     if model_exists_checker(model_name, dev_mode=False):
         print("Model already exists")
     else:
@@ -36,7 +36,7 @@ def train_models():
 
     # train the SkipGram model
     Skip_gram = Skip.Skip_Gram(dev_mode=False)
-    model_name = model_name_generator('Skip_gram', [1, 10, 0, 10, 1000, 5, 10000000], 1000000)
+    model_name = "Skip-Gram_Benchmark"
     if model_exists_checker(model_name, dev_mode=False):
         print("Model already exists")
     else:
@@ -47,7 +47,7 @@ def train_models():
         print("Skip-Gram train-time " + str(time.time() - start_time))
 
     Fast_Text = FT.Fast_Text(dev_mode=False)
-    model_name = model_name_generator('Fast_Text', [1, 10, 1, 10, 1000, 5, 10000000], 1000000)
+    model_name = "FastText_Benchmark"
     if model_exists_checker(model_name, dev_mode=False):
         print("Model already exists")
     else:
