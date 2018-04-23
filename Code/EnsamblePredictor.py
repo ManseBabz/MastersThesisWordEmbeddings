@@ -1,6 +1,8 @@
 import predictor_setup as ps
 import os, operator
 import numpy as np
+from scipy import stats
+from Our_FastText import utils
 """
 This module contains multiple ensamble methods
 """
@@ -35,6 +37,8 @@ def update_prob(list_of_results, key_word, prob_value):
         if(entry[0]==key_word):
             entry[1] += prob_value
     return list_of_results
+
+
 
 ####################################################################################################################################
 #################################### Ensamble Methods ##############################################################################
@@ -87,8 +91,66 @@ class simple_ensamble:
             print(best_result)
         return best_result
 
+    def accuracy(self, questions, case_insensitive=False, predictor_method=0):
+        sections, section = [], None
+        for line_no, line in enumerate(utils.smart_open(questions)):
+            # TODO: use level3 BLAS (=evaluate multiple questions at once), for speed
+            line = utils.to_unicode(line)
+            if line.startswith(': '):
+                # a new section starts => store the old section
+                if section:
+                    sections.append(section)
+                section = {'section': line.lstrip(': ').strip(), 'correct': [], 'incorrect': []}
+            else:
+                if not section:
+                    raise ValueError("missing section header before line #%i in %s" % (line_no, questions))
+                try:
+                    if case_insensitive:
+                        a, b, c, expected = [word.upper() for word in line.split()]
+                    else:
+                        a, b, c, expected = [word for word in line.split()]
+                except ValueError:
+                    print("skipping invalid line #%i in %s", line_no, questions)
+                    continue
+            if predictor_method == 0:
+                print("Evaluation method: Majority vote")
+                predicted = simple_ensamble.predict_majority_vote(positive_word_list=[b, c],
+                                                                        negative_word_list=[a],
+                                                                        top_n_words=1)
+            elif predictor_method == 1:
+                print("Evaluation method: Sumed most probable")
+                predicted = simple_ensamble.predict_sum_proberbility(positive_word_list=[b, c],
+                                                                           negative_word_list=[a],
+                                                                           top_n_words=1)
+            elif predictor_method == 2:
+                print("Evaluation method: weighted sum porberbilities")
+                predicted = simple_ensamble.predict_weighted_sum_proberbility(positive_word_list=[b, c],
+                                                                                    negative_word_list=[a],
+                                                                                    top_n_words=1)
+            else:
+                raise ValueError("incorrect argument type for predictor_method")
+
+            if predicted[0] == expected:
+                section['correct'].append((a, b, c, expected))
+            else:
+                section['incorrect'].append((a, b, c, expected))
+        if section:
+            # store the last section, too
+            sections.append(section)
+        total = {
+            'section': 'total',
+            'correct': sum((s['correct'] for s in sections), []),
+            'incorrect': sum((s['incorrect'] for s in sections), []),
+        }
+        print(total)
+        sections.append(total)
+        return sections
+
+    def evaluate_word_pairs(self):
+        print("Not implemnted yet")
+
     def __init__(self, model_name_list, dev_mode=False, training_articles=10000):
-        self.model_list=model_name_list
+        self.model_name_list=model_name_list
         self.dev_mode = dev_mode
         self.training_articles = training_articles
         simple_ensamble.setup(model_name_list)
@@ -103,7 +165,7 @@ class boot_strap_aggregator:
     def setup(self):
         self.models = ps.setup(self.model_name_list, training_articles=self.training_articles)
 
-    def predict_majority_vote(self, positive_word_list, negative_word_list, top_n_words, wanted_printed):
+    def predict_majority_vote(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
         result = []  # List of results from the different predictors
         best_result = [None, 0]  # Best result found
         # Predict best word
@@ -122,7 +184,7 @@ class boot_strap_aggregator:
             print(best_result)
         return best_result
 
-    def predict_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed):
+    def predict_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
         result = []  # List of results from the different predictors
         best_result = [None, 0]  # Best result found
 
@@ -180,6 +242,98 @@ class boot_strap_aggregator:
             print("No result")
             return []
 
+    def accuracy(self, questions, case_insensitive=False, predictor_method=0):
+        sections, section = [], None
+        for line_no, line in enumerate(utils.smart_open(questions)):
+            # TODO: use level3 BLAS (=evaluate multiple questions at once), for speed
+            line = utils.to_unicode(line)
+            if line.startswith(': '):
+                # a new section starts => store the old section
+                if section:
+                    sections.append(section)
+                section = {'section': line.lstrip(': ').strip(), 'correct': [], 'incorrect': []}
+            else:
+                if not section:
+                    raise ValueError("missing section header before line #%i in %s" % (line_no, questions))
+                try:
+                    if case_insensitive:
+                        a, b, c, expected = [word.upper() for word in line.split()]
+                    else:
+                        a, b, c, expected = [word for word in line.split()]
+                except ValueError:
+                    print("skipping invalid line #%i in %s", line_no, questions)
+                    continue
+            if predictor_method == 0:
+                print("Evaluation method: Majority vote")
+                predicted = boot_strap_aggregator.predict_majority_vote(positive_word_list=[b, c], negative_word_list=[a],
+                                                            top_n_words=1)
+            elif predictor_method ==1:
+                print("Evaluation method: Sumed most probable")
+                predicted = boot_strap_aggregator.predict_sum_proberbility(positive_word_list=[b, c], negative_word_list=[a],
+                                                            top_n_words=1)
+            elif predictor_method ==2:
+                print("Evaluation method: weighted sum porberbilities")
+                predicted = boot_strap_aggregator.predict_weighted_sum_proberbility(positive_word_list=[b, c], negative_word_list=[a],
+                                                            top_n_words=1)
+            else:
+                raise ValueError("incorrect argument type for predictor_method")
+
+
+            if predicted[0] == expected:
+                section['correct'].append((a, b, c, expected))
+            else:
+                section['incorrect'].append((a, b, c, expected))
+        if section:
+            # store the last section, too
+            sections.append(section)
+        total = {
+            'section': 'total',
+            'correct': sum((s['correct'] for s in sections), []),
+            'incorrect': sum((s['incorrect'] for s in sections), []),
+        }
+        print(total)
+        sections.append(total)
+        return sections
+
+    def evaluate_word_pairs(self, pairs, delimiter='\t', restrict_vocab=300000,
+                            case_insensitive=True, dummy4unknown=False):
+
+        similarity_gold = []
+        similarity_model = []
+        oov = 0
+        for line_no, line in enumerate(utils.smart_open(pairs)):
+            line = utils.to_unicode(line)
+            if line.startswith('#'):
+                # May be a comment
+                continue
+            else:
+                try:
+                    if case_insensitive:
+                        a, b, sim = [word.upper() for word in line.split(delimiter)]
+                    else:
+                        a, b, sim = [word for word in line.split(delimiter)]
+                    sim = float(sim)
+                except (ValueError, TypeError):
+                    #logger.info('skipping invalid line #%d in %s', line_no, pairs)
+                    continue
+
+                similarity_gold.append(sim)  # Similarity from the dataset
+                #TODO
+                similarity_model.append(self.similarity(a, b))  # Similarity from the model
+
+        spearman = stats.spearmanr(similarity_gold, similarity_model)
+        pearson = stats.pearsonr(similarity_gold, similarity_model)
+        oov_ratio = float(oov) / (len(similarity_gold) + oov) * 100
+
+        #logger.debug('Pearson correlation coefficient against %s: %f with p-value %f', pairs, pearson[0], pearson[1])
+        #logger.debug(
+        #    'Spearman rank-order correlation coefficient against %s: %f with p-value %f',
+        #    pairs, spearman[0], spearman[1]
+        #)
+        #logger.debug('Pairs with unknown words: %d', oov)
+        #self.log_evaluate_word_pairs(pearson, spearman, oov_ratio, pairs)
+        return pearson, spearman, oov_ratio
+
     def __init__(self, model_name_list, training_articles=10000):
         self.model_list=model_name_list
         self.training_articles = training_articles
@@ -197,8 +351,70 @@ class Stackingmodel:
 
     def loaded_stacking_model(self, stacking_model_file_path, positive_word_list, negative_word_list):
         models_and_weights = np.load(stacking_model_file_path)
-        self.model_list=models_and_weights[0]
-        self.weight_list=models_and_weights[1]
+        if(len(models_and_weights[0])==len(models_and_weights[1])):
+            self.model_list=models_and_weights[0]
+            self.weight_list=models_and_weights[1]
+        else:
+            print("Inbalance in weights and models")
+
+    def accuracy(self, questions, case_insensitive=False, predictor_method=0):
+        sections, section = [], None
+
+        for line_no, line in enumerate(utils.smart_open(questions)):
+            # TODO: use level3 BLAS (=evaluate multiple questions at once), for speed
+            line = utils.to_unicode(line)
+            if line.startswith(': '):
+                # a new section starts => store the old section
+                if section:
+                    sections.append(section)
+                section = {'section': line.lstrip(': ').strip(), 'correct': [], 'incorrect': []}
+            else:
+                if not section:
+                    raise ValueError("missing section header before line #%i in %s" % (line_no, questions))
+                try:
+                    if case_insensitive:
+                        a, b, c, expected = [word.upper() for word in line.split()]
+                    else:
+                        a, b, c, expected = [word for word in line.split()]
+                except ValueError:
+                    print("skipping invalid line #%i in %s", line_no, questions)
+                    continue
+            if Stackingmodel == 0:
+                print("Evaluation method: Majority vote")
+                predicted = boot_strap_aggregator.predict_majority_vote(positive_word_list=[b, c],
+                                                                        negative_word_list=[a],
+                                                                        top_n_words=1)
+            elif Stackingmodel == 1:
+                print("Evaluation method: Sumed most probable")
+                predicted = boot_strap_aggregator.predict_sum_proberbility(positive_word_list=[b, c],
+                                                                           negative_word_list=[a],
+                                                                           top_n_words=1)
+            elif Stackingmodel == 2:
+                print("Evaluation method: weighted sum porberbilities")
+                predicted = boot_strap_aggregator.predict_weighted_sum_proberbility(positive_word_list=[b, c],
+                                                                                    negative_word_list=[a],
+                                                                                    top_n_words=1)
+            else:
+                raise ValueError("incorrect argument type for predictor_method")
+
+            if predicted[0] == expected:
+                section['correct'].append((a, b, c, expected))
+            else:
+                section['incorrect'].append((a, b, c, expected))
+        if section:
+            # store the last section, too
+            sections.append(section)
+        total = {
+            'section': 'total',
+            'correct': sum((s['correct'] for s in sections), []),
+            'incorrect': sum((s['incorrect'] for s in sections), []),
+        }
+        print(total)
+        sections.append(total)
+        return sections
+
+    def evaluate_word_pairs(self):
+        print("Not implemnted yet")
 
     def __init__(self, model_list):
         self.model_list=model_list
@@ -223,8 +439,5 @@ class Stackingmodel:
     
     For special_fast_text
     hs=i[0], negative=i[1], iter=i[2], size=i[3], min_count=i[4],
-                              max_vocab_size=i[5], workers=i[6], min_n=i[7], max_n=i[8], adaptive=i[9], word_ngrams=i[10]
-                              
-    
-    
+                              max_vocab_size=i[5], workers=i[6], min_n=i[7], max_n=i[8], adaptive=i[9], word_ngrams=i[10]  
 """
