@@ -12,7 +12,7 @@ This module contains multiple ensamble methods
 ####################################################################################################################################
 def result_unpacker(list_of_results):
     return_result = []
-    print(list_of_results)
+    #print(list_of_results)
     for result_block in list_of_results:
         if(result_block != None):
             for result in result_block:
@@ -45,15 +45,15 @@ def update_prob(list_of_results, key_word, prob_value):
 ####################################################################################################################################
 class simple_ensamble:
     def setup(self):
-        self.models = ps.setup(self.model_name_list, dev_mode=self.dev_mode, training_articles=self.training_articles)
+        self.models = ps.setup(self.model_list, dev_mode=self.dev_mode, training_articles=self.training_articles)
 
-    def predict_best_word(self, positive_word_list, negative_word_list, top_n_words, wanted_printed):
+    def predict_majority_vote(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
         result = []  # List of results from the different predictors
         best_result = [None, 0]  # Best result found
         # Predict best word
         for model in self.models:
             result.append(
-                model.predict(positive_word_list, negative_word_list, nwords=top_n_words))  # Predict from set and add to result list
+                model.predict(positive_word_list, negative_word_list))  # Predict from set and add to result list
         result = result_unpacker(result)
         result = remove_probability_from_result_list(result)
         for res in result:
@@ -61,18 +61,18 @@ class simple_ensamble:
                 best_result = [res, result.count(res)]  # If better score, overwrite best result
 
         if (wanted_printed == True):
-            print(positive_word_list)
-            print(negative_word_list)
-            print(best_result)
+           print(positive_word_list)
+           print(negative_word_list)
+           print(best_result)
         return best_result
 
-    def sumed_proberbility_words(self, positive_word_list, negative_word_list, top_n_words, wanted_printed):
+    def predict_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
         result = []  # List of results from the different predictors
         best_result = [None, 0]  # Best result found
 
         for model in self.models:
             result.append(
-                model.predict(positive_word_list, negative_word_list, nwords=top_n_words))  # Predict from set and add to result list
+                model.predict(positive_word_list, negative_word_list))  # Predict from set and add to result list
 
         result = result_unpacker(result)
         most_probable_result_storing = []
@@ -91,6 +91,39 @@ class simple_ensamble:
             print(best_result)
         return best_result
 
+    def predict_weighted_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
+        result = []  # List of results from the different predictors
+        best_result = [None, 0]  # Best result found
+        # Predict best word and calculate weightet probability for this word
+        for i in range(0, len(self.models)):
+            res = self.models[i].predict(positive_word_list=positive_word_list,
+                                    negative_word_list=negative_word_list)  # Predict from set and add to result list
+            for part_res in res:
+                temp_res = []
+                temp_res.append(part_res[0])
+                temp_res.append(part_res[1] * self.weight_list[i])
+                result.append(temp_res)
+
+        # Combine probability for results
+        most_probable_result_storing = []
+        for res in result:
+            if (contains(most_probable_result_storing, res[0])):
+                update_prob(most_probable_result_storing, res[0], res[1])
+            else:
+                most_probable_result_storing.append(res)
+        most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
+
+        # Pick best result
+        if (most_probable_result_storing != []):
+            if (wanted_printed == True):
+                print(positive_word_list)
+                print(negative_word_list)
+                print(most_probable_result_storing[0])
+            return most_probable_result_storing[0]
+        else:
+            print("No result")
+            return []
+
     def similarity_avg(self, word_one, word_two):
         results=[]
         for model in self.model_list:
@@ -106,6 +139,8 @@ class simple_ensamble:
         return res
 
     def accuracy(self, questions, case_insensitive=False, predictor_method=0):
+        correct = 0
+        incorrect = 0
         sections, section = [], None
         for line_no, line in enumerate(utils.smart_open(questions)):
             # TODO: use level3 BLAS (=evaluate multiple questions at once), for speed
@@ -126,38 +161,38 @@ class simple_ensamble:
                 except ValueError:
                     print("skipping invalid line #%i in %s", line_no, questions)
                     continue
-            if predictor_method == 0:
-                print("Evaluation method: Majority vote")
-                predicted = simple_ensamble.predict_majority_vote(positive_word_list=[b, c],
+                predicted = [None, None]
+                if predictor_method == 0:
+                    print("Evaluation method: Majority vote")
+                    predicted = simple_ensamble.predict_majority_vote(self, positive_word_list=[b, c],
                                                                         negative_word_list=[a],
                                                                         top_n_words=1)
-            elif predictor_method == 1:
-                print("Evaluation method: Sumed most probable")
-                predicted = simple_ensamble.predict_sum_proberbility(positive_word_list=[b, c],
+                elif predictor_method == 1:
+                    #print("Evaluation method: Sumed most probable")
+                    predicted = simple_ensamble.predict_sum_proberbility(self, positive_word_list=[b, c],
                                                                            negative_word_list=[a],
                                                                            top_n_words=1)
-            elif predictor_method == 2:
-                print("Evaluation method: weighted sum porberbilities")
-                predicted = simple_ensamble.predict_weighted_sum_proberbility(positive_word_list=[b, c],
+                elif predictor_method == 2:
+                    #print("Evaluation method: weighted sum porberbilities")
+                    predicted = simple_ensamble.predict_weighted_sum_proberbility(self, positive_word_list=[b, c],
                                                                                     negative_word_list=[a],
                                                                                     top_n_words=1)
-            else:
-                raise ValueError("incorrect argument type for predictor_method")
+                else:
+                    raise ValueError("incorrect argument type for predictor_method")
 
-            if predicted[0] == expected:
-                section['correct'].append((a, b, c, expected))
-            else:
-                section['incorrect'].append((a, b, c, expected))
+                if predicted[0] == expected:
+                    correct += 1
+                    section['correct'].append((a, b, c, expected))
+                else:
+                    incorrect +=1
+                    section['incorrect'].append((a, b, c, expected))
         if section:
             # store the last section, too
             sections.append(section)
-        total = {
-            'section': 'total',
-            'correct': sum((s['correct'] for s in sections), []),
-            'incorrect': sum((s['incorrect'] for s in sections), []),
-        }
-        print(total)
-        sections.append(total)
+
+        print(correct)
+        print(incorrect)
+        #sections.append(total)
         return sections
 
     def evaluate_word_pairs(self, pairs, delimiter='\t', restrict_vocab=300000,
@@ -208,10 +243,11 @@ class simple_ensamble:
         self.weight_list = weight_list
 
     def __init__(self, model_name_list, dev_mode=False, training_articles=10000):
-        self.model_name_list=model_name_list
+        self.models = []
+        self.model_list=model_name_list
         self.dev_mode = dev_mode
         self.training_articles = training_articles
-        simple_ensamble.setup(model_name_list)
+        simple_ensamble.setup(self)
 
 
 """
@@ -221,7 +257,7 @@ class simple_ensamble:
 """
 class boot_strap_aggregator:
     def setup(self):
-        self.models = ps.setup(self.model_name_list, training_articles=self.training_articles)
+        self.models = ps.setup(self.model_list, training_articles=self.training_articles)
 
     def predict_majority_vote(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
         result = []  # List of results from the different predictors
