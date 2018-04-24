@@ -45,6 +45,12 @@ class Fast_Text:
         except KeyError:
             return []
 
+    def similarity(self, word_one, word_two):
+        try:
+            return self.finished_model.similarity(word_one, word_two)
+        except KeyError:
+            return None
+
     def load_model(self, name):
         print("Great you were able to load a model, no need to create a new one")
         if (self.dev_mode):

@@ -209,7 +209,7 @@ class boot_strap_aggregator:
             print(best_result)
         return best_result
 
-    def predict_weighted_sum_proberbility(self, weight_list, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
+    def predict_weighted_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
         result = []  # List of results from the different predictors
         best_result = [None, 0]  # Best result found
         # Predict best word and calculate weightet probability for this word
@@ -219,7 +219,7 @@ class boot_strap_aggregator:
             for part_res in res:
                 temp_res = []
                 temp_res.append(part_res[0])
-                temp_res.append(part_res[1] * weight_list[i])
+                temp_res.append(part_res[1] * self.weight_list[i])
                 result.append(temp_res)
 
         # Combine probability for results
@@ -241,6 +241,20 @@ class boot_strap_aggregator:
         else:
             print("No result")
             return []
+
+    def similarity_avg(self, word_one, word_two):
+        results=[]
+        for model in self.model_list:
+            results.append(model.similarity(word_one, word_two))
+        res = sum(results)/len(results)
+        return res
+
+    def similarity_weighted_avg(self, word_one, word_two):
+        results = []
+        for model in self.model_list:
+            results.append((model.similarity(word_one, word_two)*self.weight_list))
+        res = sum(results) / len(results)
+        return res
 
     def accuracy(self, questions, case_insensitive=False, predictor_method=0):
         sections, section = [], None
@@ -296,7 +310,7 @@ class boot_strap_aggregator:
         return sections
 
     def evaluate_word_pairs(self, pairs, delimiter='\t', restrict_vocab=300000,
-                            case_insensitive=True, dummy4unknown=False):
+                            case_insensitive=True, dummy4unknown=False, similarity_model_type="0"):
 
         similarity_gold = []
         similarity_model = []
@@ -318,8 +332,15 @@ class boot_strap_aggregator:
                     continue
 
                 similarity_gold.append(sim)  # Similarity from the dataset
-                #TODO
-                similarity_model.append(self.similarity(a, b))  # Similarity from the model
+                if(similarity_model_type == 0):
+                    similarity_model.append(boot_strap_aggregator.similarity_avg_proberbility(a, b))  # Similarity from the model
+                elif(similarity_model_type == 1):
+                    if(self.weight_list == []):
+                        raise ValueError("No weights specified for ensamble model")
+                    else:
+                        similarity_model.append(boot_strap_aggregator.similarity_weighted_avg_proberbility(a, b))
+                else:
+                    raise ValueError("incorrect argument type for predictor_method")
 
         spearman = stats.spearmanr(similarity_gold, similarity_model)
         pearson = stats.pearsonr(similarity_gold, similarity_model)
@@ -333,6 +354,9 @@ class boot_strap_aggregator:
         #logger.debug('Pairs with unknown words: %d', oov)
         #self.log_evaluate_word_pairs(pearson, spearman, oov_ratio, pairs)
         return pearson, spearman, oov_ratio
+
+    def set_weights(self, weight_list):
+        self.weight_list = weight_list
 
     def __init__(self, model_name_list, training_articles=10000):
         self.model_list=model_name_list
