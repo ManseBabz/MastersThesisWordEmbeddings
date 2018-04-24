@@ -91,6 +91,20 @@ class simple_ensamble:
             print(best_result)
         return best_result
 
+    def similarity_avg(self, word_one, word_two):
+        results=[]
+        for model in self.model_list:
+            results.append(model.similarity(word_one, word_two))
+        res = sum(results)/len(results)
+        return res
+
+    def similarity_weighted_avg(self, word_one, word_two):
+        results = []
+        for model in self.model_list:
+            results.append((model.similarity(word_one, word_two)*self.weight_list))
+        res = sum(results) / len(results)
+        return res
+
     def accuracy(self, questions, case_insensitive=False, predictor_method=0):
         sections, section = [], None
         for line_no, line in enumerate(utils.smart_open(questions)):
@@ -146,8 +160,52 @@ class simple_ensamble:
         sections.append(total)
         return sections
 
-    def evaluate_word_pairs(self):
-        print("Not implemnted yet")
+    def evaluate_word_pairs(self, pairs, delimiter='\t', restrict_vocab=300000,
+                            case_insensitive=True, dummy4unknown=False, similarity_model_type="0"):
+
+        similarity_gold = []
+        similarity_model = []
+        for line_no, line in enumerate(utils.smart_open(pairs)):
+            line = utils.to_unicode(line)
+            if line.startswith('#'):
+                # May be a comment
+                continue
+            else:
+                try:
+                    if case_insensitive:
+                        a, b, sim = [word.upper() for word in line.split(delimiter)]
+                    else:
+                        a, b, sim = [word for word in line.split(delimiter)]
+                    sim = float(sim)
+                except (ValueError, TypeError):
+                    #logger.info('skipping invalid line #%d in %s', line_no, pairs)
+                    continue
+
+                similarity_gold.append(sim)  # Similarity from the dataset
+                if(similarity_model_type == 0):
+                    similarity_model.append(boot_strap_aggregator.similarity_avg_proberbility(a, b))  # Similarity from the model
+                elif(similarity_model_type == 1):
+                    if(self.weight_list == []):
+                        raise ValueError("No weights specified for ensamble model")
+                    else:
+                        similarity_model.append(boot_strap_aggregator.similarity_weighted_avg_proberbility(a, b))
+                else:
+                    raise ValueError("incorrect argument type for predictor_method")
+
+        spearman = stats.spearmanr(similarity_gold, similarity_model)
+        pearson = stats.pearsonr(similarity_gold, similarity_model)
+
+        #logger.debug('Pearson correlation coefficient against %s: %f with p-value %f', pairs, pearson[0], pearson[1])
+        #logger.debug(
+        #    'Spearman rank-order correlation coefficient against %s: %f with p-value %f',
+        #    pairs, spearman[0], spearman[1]
+        #)
+        #logger.debug('Pairs with unknown words: %d', oov)
+        #self.log_evaluate_word_pairs(pearson, spearman, oov_ratio, pairs)
+        return pearson, spearman
+
+    def set_weights(self, weight_list):
+        self.weight_list = weight_list
 
     def __init__(self, model_name_list, dev_mode=False, training_articles=10000):
         self.model_name_list=model_name_list
@@ -314,7 +372,6 @@ class boot_strap_aggregator:
 
         similarity_gold = []
         similarity_model = []
-        oov = 0
         for line_no, line in enumerate(utils.smart_open(pairs)):
             line = utils.to_unicode(line)
             if line.startswith('#'):
@@ -344,7 +401,7 @@ class boot_strap_aggregator:
 
         spearman = stats.spearmanr(similarity_gold, similarity_model)
         pearson = stats.pearsonr(similarity_gold, similarity_model)
-        oov_ratio = float(oov) / (len(similarity_gold) + oov) * 100
+
 
         #logger.debug('Pearson correlation coefficient against %s: %f with p-value %f', pairs, pearson[0], pearson[1])
         #logger.debug(
@@ -353,7 +410,7 @@ class boot_strap_aggregator:
         #)
         #logger.debug('Pairs with unknown words: %d', oov)
         #self.log_evaluate_word_pairs(pearson, spearman, oov_ratio, pairs)
-        return pearson, spearman, oov_ratio
+        return pearson, spearman
 
     def set_weights(self, weight_list):
         self.weight_list = weight_list
@@ -365,11 +422,11 @@ class boot_strap_aggregator:
 
 
 class Stackingmodel:
-    def stacking_model_trainer(leaner_list, weight_file_name):
+    def stacking_model_trainer(self, weight_file_name="StackingWeights"):
         savepath = os.path.dirname(os.path.realpath(__file__))+"/LeaningAlgoImpl/Weight_models/"+weight_file_name
         weights = []
         # TODO - Make a way to train the model
-        learned_result_to_file = [leaner_list, weights]
+        learned_result_to_file = [self.model_list, weights]
         np.save(savepath, learned_result_to_file)
         return learned_result_to_file[1]
 
@@ -380,6 +437,16 @@ class Stackingmodel:
             self.weight_list=models_and_weights[1]
         else:
             print("Inbalance in weights and models")
+            Stackingmodel.stacking_model_trainer(self.model_list)
+
+
+
+    def similarity_weighted_avg(self, word_one, word_two):
+        results = []
+        for model in self.model_list:
+            results.append((model.similarity(word_one, word_two)*self.weight_list))
+        res = sum(results) / len(results)
+        return res
 
     def accuracy(self, questions, case_insensitive=False, predictor_method=0):
         sections, section = [], None
@@ -437,8 +504,43 @@ class Stackingmodel:
         sections.append(total)
         return sections
 
-    def evaluate_word_pairs(self):
-        print("Not implemnted yet")
+    def evaluate_word_pairs(self, pairs, delimiter='\t', restrict_vocab=300000,
+                            case_insensitive=True, dummy4unknown=False, similarity_model_type="0"):
+
+        similarity_gold = []
+        similarity_model = []
+        for line_no, line in enumerate(utils.smart_open(pairs)):
+            line = utils.to_unicode(line)
+            if line.startswith('#'):
+                # May be a comment
+                continue
+            else:
+                try:
+                    if case_insensitive:
+                        a, b, sim = [word.upper() for word in line.split(delimiter)]
+                    else:
+                        a, b, sim = [word for word in line.split(delimiter)]
+                    sim = float(sim)
+                except (ValueError, TypeError):
+                    #logger.info('skipping invalid line #%d in %s', line_no, pairs)
+                    continue
+
+                similarity_gold.append(sim)  # Similarity from the dataset
+                similarity_model.append(boot_strap_aggregator.similarity_weighted_avg_proberbility(a, b))
+
+
+        spearman = stats.spearmanr(similarity_gold, similarity_model)
+        pearson = stats.pearsonr(similarity_gold, similarity_model)
+
+        #logger.debug('Pearson correlation coefficient against %s: %f with p-value %f', pairs, pearson[0], pearson[1])
+        #logger.debug(
+        #    'Spearman rank-order correlation coefficient against %s: %f with p-value %f',
+        #    pairs, spearman[0], spearman[1]
+        #)
+        #logger.debug('Pairs with unknown words: %d', oov)
+        #self.log_evaluate_word_pairs(pearson, spearman, oov_ratio, pairs)
+        return pearson, spearman
+
 
     def __init__(self, model_list):
         self.model_list=model_list
