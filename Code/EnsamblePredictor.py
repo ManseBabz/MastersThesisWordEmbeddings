@@ -25,17 +25,14 @@ def remove_probability_from_result_list(list_of_results):
         real_result.append(res[0])
     return real_result
 
-def contains(list_of_results, keyword):
-    truth_value = False
-    for string in list_of_results:
-        if(string == keyword):
-            truth_value =True
-    return truth_value
-
 def update_prob(list_of_results, key_word, prob_value):
     for entry in list_of_results:
         if(entry[0]==key_word):
+            print(prob_value)
+            print(entry[1])
+            print(entry)
             entry[1] += prob_value
+            print(entry[1])
     return list_of_results
 
 
@@ -56,6 +53,7 @@ class simple_ensamble:
                 model.predict(positive_word_list, negative_word_list))  # Predict from set and add to result list
         result = result_unpacker(result)
         result = remove_probability_from_result_list(result)
+
         for res in result:
             if (result.count(res) > best_result[1]):  # Check if next result has a better "score"
                 best_result = [res, result.count(res)]  # If better score, overwrite best result
@@ -67,75 +65,33 @@ class simple_ensamble:
         return best_result
 
     def predict_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
-        result = []  # List of results from the different predictors
-        best_result = [None, 0]  # Best result found
-
-        for model in self.models:
-            result.append(
-                model.predict(positive_word_list, negative_word_list))  # Predict from set and add to result list
-
-        result = result_unpacker(result)
-        most_probable_result_storing = []
-        for res in result:
-            if (contains(most_probable_result_storing, res[0])):
-                update_prob(most_probable_result_storing, res[0], res[1])
-            else:
-                most_probable_result_storing.append(res)
-        most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
-        best_result = most_probable_result_storing[0]
-
-        if (wanted_printed == True):
-            print(positive_word_list)
-            print(negative_word_list)
-            print(most_probable_result_storing)
-            print(best_result)
-        return best_result
+        print("TODO")
 
     def predict_weighted_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
-        result = []  # List of results from the different predictors
-        best_result = [None, 0]  # Best result found
-        # Predict best word and calculate weightet probability for this word
-        for i in range(0, len(self.models)):
-            res = self.models[i].predict(positive_word_list=positive_word_list,
-                                    negative_word_list=negative_word_list)  # Predict from set and add to result list
-            for part_res in res:
-                temp_res = []
-                temp_res.append(part_res[0])
-                temp_res.append(part_res[1] * self.weight_list[i])
-                result.append(temp_res)
+        print("TODO")
 
-        # Combine probability for results
-        most_probable_result_storing = []
-        for res in result:
-            if (contains(most_probable_result_storing, res[0])):
-                update_prob(most_probable_result_storing, res[0], res[1])
-            else:
-                most_probable_result_storing.append(res)
-        most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
-
-        # Pick best result
-        if (most_probable_result_storing != []):
-            if (wanted_printed == True):
-                print(positive_word_list)
-                print(negative_word_list)
-                print(most_probable_result_storing[0])
-            return most_probable_result_storing[0]
-        else:
-            print("No result")
-            return []
-
-    def similarity_avg(self, word_one, word_two):
-        results=[]
-        for model in self.model_list:
+    def similarity_avg_proberbility(self, word_one, word_two):
+        results = []
+        for model in self.models:
             results.append(model.similarity(word_one, word_two))
-        res = sum(results)/len(results)
+        if (all(v is None for v in results)):
+            res = 0
+        else:
+            res = sum(results) / len(results)
         return res
 
-    def similarity_weighted_avg(self, word_one, word_two):
+    def similarity_weighted_avg_proberbility(self, word_one, word_two):
         results = []
-        for model in self.model_list:
-            results.append((model.similarity(word_one, word_two)*self.weight_list))
-        res = sum(results) / len(results)
+        for model_index in range(0, len(self.models)):
+            res = self.models[model_index].similarity(word_one, word_two)
+            if res == None:
+                results.append(0)
+            else:
+                results.append(float(res) * self.weight_list[model_index])
+        if (all(v is None for v in results)):
+            res = 0
+        else:
+            res = sum(results) / len(results)
         return res
 
     def accuracy(self, questions, case_insensitive=False, predictor_method=0):
@@ -196,7 +152,7 @@ class simple_ensamble:
         return sections
 
     def evaluate_word_pairs(self, pairs, delimiter='\t', restrict_vocab=300000,
-                            case_insensitive=True, dummy4unknown=False, similarity_model_type="0"):
+                            case_insensitive=False, dummy4unknown=False, similarity_model_type="0"):
 
         similarity_gold = []
         similarity_model = []
@@ -208,35 +164,38 @@ class simple_ensamble:
             else:
                 try:
                     if case_insensitive:
-                        a, b, sim = [word.upper() for word in line.split(delimiter)]
+                        a, b, sim = [word.lower() for word in line.split(delimiter)]
                     else:
                         a, b, sim = [word for word in line.split(delimiter)]
                     sim = float(sim)
                 except (ValueError, TypeError):
-                    #logger.info('skipping invalid line #%d in %s', line_no, pairs)
+                    # logger.info('skipping invalid line #%d in %s', line_no, pairs)
                     continue
 
                 similarity_gold.append(sim)  # Similarity from the dataset
-                if(similarity_model_type == 0):
-                    similarity_model.append(boot_strap_aggregator.similarity_avg_proberbility(a, b))  # Similarity from the model
-                elif(similarity_model_type == 1):
-                    if(self.weight_list == []):
+                if (similarity_model_type == 0):
+                    similarity_model.append(
+                        simple_ensamble.similarity_avg_proberbility(self, a, b))  # Similarity from the model
+                elif (similarity_model_type == 1):
+                    if (self.weight_list == []):
                         raise ValueError("No weights specified for ensamble model")
                     else:
-                        similarity_model.append(boot_strap_aggregator.similarity_weighted_avg_proberbility(a, b))
+                        similarity_model.append(simple_ensamble.similarity_weighted_avg_proberbility(self, a, b))
                 else:
                     raise ValueError("incorrect argument type for predictor_method")
 
         spearman = stats.spearmanr(similarity_gold, similarity_model)
         pearson = stats.pearsonr(similarity_gold, similarity_model)
 
-        #logger.debug('Pearson correlation coefficient against %s: %f with p-value %f', pairs, pearson[0], pearson[1])
-        #logger.debug(
+        # logger.debug('Pearson correlation coefficient against %s: %f with p-value %f', pairs, pearson[0], pearson[1])
+        # logger.debug(
         #    'Spearman rank-order correlation coefficient against %s: %f with p-value %f',
         #    pairs, spearman[0], spearman[1]
-        #)
-        #logger.debug('Pairs with unknown words: %d', oov)
-        #self.log_evaluate_word_pairs(pearson, spearman, oov_ratio, pairs)
+        # )
+        # logger.debug('Pairs with unknown words: %d', oov)
+        # self.log_evaluate_word_pairs(pearson, spearman, oov_ratio, pairs)
+        print(pearson)
+        print(spearman)
         return pearson, spearman
 
     def set_weights(self, weight_list):
@@ -257,7 +216,7 @@ class simple_ensamble:
 """
 class boot_strap_aggregator:
     def setup(self):
-        self.models = ps.setup(self.model_list, training_articles=self.training_articles)
+        self.models = ps.setup(self.model_list, dev_mode=self.dev_mode, training_articles=self.training_articles)
 
     def predict_majority_vote(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
         result = []  # List of results from the different predictors
@@ -279,78 +238,39 @@ class boot_strap_aggregator:
         return best_result
 
     def predict_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
-        result = []  # List of results from the different predictors
-        best_result = [None, 0]  # Best result found
+        print("TODO")
 
-        for model in self.models:
-            result.append(
-                model.predict(positive_word_list, negative_word_list, nwords=top_n_words))  # Predict from set and add to result list
+    def predict_weighted_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words,
+                                          wanted_printed=False):
+        print("TODO")
 
-        result = result_unpacker(result)
-        most_probable_result_storing = []
-        for res in result:
-            if (contains(most_probable_result_storing, res[0])):
-                update_prob(most_probable_result_storing, res[0], res[1])
-            else:
-                most_probable_result_storing.append(res)
-        most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
-        best_result = most_probable_result_storing[0]
-
-        if (wanted_printed == True):
-            print(positive_word_list)
-            print(negative_word_list)
-            print(most_probable_result_storing)
-            print(best_result)
-        return best_result
-
-    def predict_weighted_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
-        result = []  # List of results from the different predictors
-        best_result = [None, 0]  # Best result found
-        # Predict best word and calculate weightet probability for this word
-        for i in range(0, len(self.models)):
-            res = self.models[i].predict(positive_word_list=positive_word_list,
-                                    negative_word_list=negative_word_list)  # Predict from set and add to result list
-            for part_res in res:
-                temp_res = []
-                temp_res.append(part_res[0])
-                temp_res.append(part_res[1] * self.weight_list[i])
-                result.append(temp_res)
-
-        # Combine probability for results
-        most_probable_result_storing = []
-        for res in result:
-            if (contains(most_probable_result_storing, res[0])):
-                update_prob(most_probable_result_storing, res[0], res[1])
-            else:
-                most_probable_result_storing.append(res)
-        most_probable_result_storing.sort(key=operator.itemgetter(1), reverse=True)
-
-        # Pick best result
-        if (most_probable_result_storing != []):
-            if (wanted_printed == True):
-                print(positive_word_list)
-                print(negative_word_list)
-                print(most_probable_result_storing[0])
-            return most_probable_result_storing[0]
-        else:
-            print("No result")
-            return []
-
-    def similarity_avg(self, word_one, word_two):
+    def similarity_avg_proberbility(self, word_one, word_two):
         results=[]
-        for model in self.model_list:
+        for model in self.models:
             results.append(model.similarity(word_one, word_two))
-        res = sum(results)/len(results)
+        if(all(v is None for v in results)):
+            res = 0
+        else:
+            res = sum(results)/len(results)
         return res
 
-    def similarity_weighted_avg(self, word_one, word_two):
+    def similarity_weighted_avg_proberbility(self, word_one, word_two):
         results = []
-        for model in self.model_list:
-            results.append((model.similarity(word_one, word_two)*self.weight_list))
-        res = sum(results) / len(results)
+        for model_index in range(0, len(self.models)):
+            res =self.models[model_index].similarity(word_one, word_two)
+            if res == None:
+                results.append(0)
+            else:
+                results.append(float(res)*self.weight_list[model_index])
+        if (all(v is None for v in results)):
+            res = 0
+        else:
+            res = sum(results) / len(results)
         return res
 
-    def accuracy(self, questions, case_insensitive=False, predictor_method=0):
+    def accuracy(self, questions, case_insensitive=True, predictor_method=0):
+        correct = 0
+        incorrect = 0
         sections, section = [], None
         for line_no, line in enumerate(utils.smart_open(questions)):
             # TODO: use level3 BLAS (=evaluate multiple questions at once), for speed
@@ -371,40 +291,42 @@ class boot_strap_aggregator:
                 except ValueError:
                     print("skipping invalid line #%i in %s", line_no, questions)
                     continue
-            if predictor_method == 0:
-                print("Evaluation method: Majority vote")
-                predicted = boot_strap_aggregator.predict_majority_vote(positive_word_list=[b, c], negative_word_list=[a],
-                                                            top_n_words=1)
-            elif predictor_method ==1:
-                print("Evaluation method: Sumed most probable")
-                predicted = boot_strap_aggregator.predict_sum_proberbility(positive_word_list=[b, c], negative_word_list=[a],
-                                                            top_n_words=1)
-            elif predictor_method ==2:
-                print("Evaluation method: weighted sum porberbilities")
-                predicted = boot_strap_aggregator.predict_weighted_sum_proberbility(positive_word_list=[b, c], negative_word_list=[a],
-                                                            top_n_words=1)
-            else:
-                raise ValueError("incorrect argument type for predictor_method")
+                predicted = [None, None]
+                if predictor_method == 0:
+                    print("Evaluation method: Majority vote")
+                    predicted = simple_ensamble.predict_majority_vote(self, positive_word_list=[b, c],
+                                                                        negative_word_list=[a],
+                                                                        top_n_words=1)
+                elif predictor_method == 1:
+                    #print("Evaluation method: Sumed most probable")
+                    predicted = simple_ensamble.predict_sum_proberbility(self, positive_word_list=[b, c],
+                                                                           negative_word_list=[a],
+                                                                           top_n_words=1)
+                elif predictor_method == 2:
+                    #print("Evaluation method: weighted sum porberbilities")
+                    predicted = simple_ensamble.predict_weighted_sum_proberbility(self, positive_word_list=[b, c],
+                                                                                    negative_word_list=[a],
+                                                                                    top_n_words=1)
+                else:
+                    raise ValueError("incorrect argument type for predictor_method")
 
-
-            if predicted[0] == expected:
-                section['correct'].append((a, b, c, expected))
-            else:
-                section['incorrect'].append((a, b, c, expected))
+                if predicted[0] == expected:
+                    correct += 1
+                    section['correct'].append((a, b, c, expected))
+                else:
+                    incorrect +=1
+                    section['incorrect'].append((a, b, c, expected))
         if section:
             # store the last section, too
             sections.append(section)
-        total = {
-            'section': 'total',
-            'correct': sum((s['correct'] for s in sections), []),
-            'incorrect': sum((s['incorrect'] for s in sections), []),
-        }
-        print(total)
-        sections.append(total)
+
+        print(correct)
+        print(incorrect)
+        #sections.append(total)
         return sections
 
     def evaluate_word_pairs(self, pairs, delimiter='\t', restrict_vocab=300000,
-                            case_insensitive=True, dummy4unknown=False, similarity_model_type="0"):
+                            case_insensitive=False, dummy4unknown=False, similarity_model_type="0"):
 
         similarity_gold = []
         similarity_model = []
@@ -416,7 +338,7 @@ class boot_strap_aggregator:
             else:
                 try:
                     if case_insensitive:
-                        a, b, sim = [word.upper() for word in line.split(delimiter)]
+                        a, b, sim = [word.lower() for word in line.split(delimiter)]
                     else:
                         a, b, sim = [word for word in line.split(delimiter)]
                     sim = float(sim)
@@ -426,12 +348,12 @@ class boot_strap_aggregator:
 
                 similarity_gold.append(sim)  # Similarity from the dataset
                 if(similarity_model_type == 0):
-                    similarity_model.append(boot_strap_aggregator.similarity_avg_proberbility(a, b))  # Similarity from the model
+                    similarity_model.append(boot_strap_aggregator.similarity_avg_proberbility(self, a, b))  # Similarity from the model
                 elif(similarity_model_type == 1):
                     if(self.weight_list == []):
                         raise ValueError("No weights specified for ensamble model")
                     else:
-                        similarity_model.append(boot_strap_aggregator.similarity_weighted_avg_proberbility(a, b))
+                        similarity_model.append(boot_strap_aggregator.similarity_weighted_avg_proberbility(self, a, b))
                 else:
                     raise ValueError("incorrect argument type for predictor_method")
 
@@ -446,15 +368,19 @@ class boot_strap_aggregator:
         #)
         #logger.debug('Pairs with unknown words: %d', oov)
         #self.log_evaluate_word_pairs(pearson, spearman, oov_ratio, pairs)
+        print(pearson)
+        print(spearman)
         return pearson, spearman
 
     def set_weights(self, weight_list):
         self.weight_list = weight_list
 
-    def __init__(self, model_name_list, training_articles=10000):
+    def __init__(self, model_name_list, dev_mode=False, training_articles=10000):
+        self.models = []
         self.model_list=model_name_list
+        self.dev_mode = dev_mode
         self.training_articles = training_articles
-        boot_strap_aggregator.setup(model_name_list)
+        boot_strap_aggregator.setup(self)
 
 
 class Stackingmodel:
@@ -506,24 +432,8 @@ class Stackingmodel:
                 except ValueError:
                     print("skipping invalid line #%i in %s", line_no, questions)
                     continue
-            if Stackingmodel == 0:
-                print("Evaluation method: Majority vote")
-                predicted = boot_strap_aggregator.predict_majority_vote(positive_word_list=[b, c],
-                                                                        negative_word_list=[a],
-                                                                        top_n_words=1)
-            elif Stackingmodel == 1:
-                print("Evaluation method: Sumed most probable")
-                predicted = boot_strap_aggregator.predict_sum_proberbility(positive_word_list=[b, c],
-                                                                           negative_word_list=[a],
-                                                                           top_n_words=1)
-            elif Stackingmodel == 2:
-                print("Evaluation method: weighted sum porberbilities")
-                predicted = boot_strap_aggregator.predict_weighted_sum_proberbility(positive_word_list=[b, c],
-                                                                                    negative_word_list=[a],
-                                                                                    top_n_words=1)
-            else:
-                raise ValueError("incorrect argument type for predictor_method")
-
+            #TODO predict something
+            predicted=[]
             if predicted[0] == expected:
                 section['correct'].append((a, b, c, expected))
             else:
