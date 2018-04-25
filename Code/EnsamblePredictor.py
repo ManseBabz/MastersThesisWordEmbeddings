@@ -28,11 +28,7 @@ def remove_probability_from_result_list(list_of_results):
 def update_prob(list_of_results, key_word, prob_value):
     for entry in list_of_results:
         if(entry[0]==key_word):
-            print(prob_value)
-            print(entry[1])
-            print(entry)
             entry[1] += prob_value
-            print(entry[1])
     return list_of_results
 
 
@@ -64,11 +60,85 @@ class simple_ensamble:
            print(best_result)
         return best_result
 
-    def predict_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
-        print("TODO")
+    def predict_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words=1, wanted_printed=False):
+        result = []  # List of results from the different predictors
+        best_result = [None, 0]  # Best result found
+        # Predict best word
+        for model in self.models:
+            result.append(
+                model.predict(positive_word_list, negative_word_list))  # Predict from set and add to result list
+
+        result = result_unpacker(result)
+        result = [list(item) for item in result]
+
+        if(result != []):
+            true_result_storage = []
+            true_result_storage.append(result[0])
+            result.pop(0)
+            for res in result:
+                #print(res)
+                for possible in true_result_storage:
+                    #print("assessing result")
+                    if(res[0]==possible[0]):
+                        update_prob(true_result_storage, res[0], res[1])
+                        break
+                    else:
+                        true_result_storage.append(res)
+                        break
+
+            best_result = sorted(true_result_storage, key=lambda x: int(x[1]))
+            if (wanted_printed == True):
+                print(positive_word_list)
+                print(negative_word_list)
+                print(best_result)
+            return best_result[0]
+        else:
+            return [None]
 
     def predict_weighted_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
-        print("TODO")
+        if(self.weight_list == []):
+            print("No weights specified, please use: predict_sum_proberbility instead")
+            return [None]
+        elif(len(self.weight_list) != len(self.models)):
+            print("Not enough weights specified")
+            return [None]
+        else:
+            result = []  # List of results from the different predictors
+            best_result = [None, 0]  # Best result found
+            # Predict best word
+            for model_index in range(0, len(self.models)):
+                store_res = self.models[model_index].predict(positive_word_list, negative_word_list)  # Predict from set and add to result list
+                temp_res = []
+                for change_res in store_res:
+                    temp_res.append([change_res[0], change_res[1]*self.weight_list[model_index]])
+                result.append(temp_res)
+
+            result = result_unpacker(result)
+            result = [list(item) for item in result]
+
+            if (result != []):
+                true_result_storage = []
+                true_result_storage.append(result[0])
+                result.pop(0)
+                for res in result:
+                    # print(res)
+                    for possible in true_result_storage:
+                        # print("assessing result")
+                        if (res[0] == possible[0]):
+                            update_prob(true_result_storage, res[0], res[1])
+                            break
+                        else:
+                            true_result_storage.append(res)
+                            break
+
+                best_result = sorted(true_result_storage, key=lambda x: int(x[1]))
+                if (wanted_printed == True):
+                    print(positive_word_list)
+                    print(negative_word_list)
+                    print(best_result)
+                return best_result[0]
+            else:
+                return [None]
 
     def similarity_avg_proberbility(self, word_one, word_two):
         results = []
@@ -124,7 +194,7 @@ class simple_ensamble:
                                                                         negative_word_list=[a],
                                                                         top_n_words=1)
                 elif predictor_method == 1:
-                    #print("Evaluation method: Sumed most probable")
+                    print("Evaluation method: Sumed most probable")
                     predicted = simple_ensamble.predict_sum_proberbility(self, positive_word_list=[b, c],
                                                                            negative_word_list=[a],
                                                                            top_n_words=1)
@@ -202,6 +272,7 @@ class simple_ensamble:
         self.weight_list = weight_list
 
     def __init__(self, model_name_list, dev_mode=False, training_articles=10000):
+        self.weight_list = []
         self.models = []
         self.model_list=model_name_list
         self.dev_mode = dev_mode
@@ -224,7 +295,7 @@ class boot_strap_aggregator:
         # Predict best word
         for model in self.models:
             result.append(
-                model.predict(positive_word_list, negative_word_list, nwords=top_n_words))  # Predict from set and add to result list
+                model.predict(positive_word_list, negative_word_list))  # Predict from set and add to result list
         result = result_unpacker(result)
         result = remove_probability_from_result_list(result)
         for res in result:
@@ -237,12 +308,85 @@ class boot_strap_aggregator:
             print(best_result)
         return best_result
 
-    def predict_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
-        print("TODO")
+    def predict_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words=1, wanted_printed=False):
+        result = []  # List of results from the different predictors
+        best_result = [None, 0]  # Best result found
+        # Predict best word
+        for model in self.models:
+            result.append(
+                model.predict(positive_word_list, negative_word_list))  # Predict from set and add to result list
 
-    def predict_weighted_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words,
-                                          wanted_printed=False):
-        print("TODO")
+        result = result_unpacker(result)
+        result = [list(item) for item in result]
+
+        if (result != []):
+            true_result_storage = []
+            true_result_storage.append(result[0])
+            result.pop(0)
+            for res in result:
+                # print(res)
+                for possible in true_result_storage:
+                    # print("assessing result")
+                    if (res[0] == possible[0]):
+                        update_prob(true_result_storage, res[0], res[1])
+                        break
+                    else:
+                        true_result_storage.append(res)
+                        break
+
+            best_result = sorted(true_result_storage, key=lambda x: int(x[1]))
+            if (wanted_printed == True):
+                print(positive_word_list)
+                print(negative_word_list)
+                print(best_result)
+            return best_result[0]
+        else:
+            return [None]
+
+    def predict_weighted_sum_proberbility(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
+        if(self.weight_list == []):
+            print("No weights specified, please use: predict_sum_proberbility instead")
+            return [None]
+        elif(len(self.weight_list) != len(self.models)):
+            print("Not enough weights specified")
+            return [None]
+        else:
+            result = []  # List of results from the different predictors
+            best_result = [None, 0]  # Best result found
+            # Predict best word
+            for model_index in range(0, len(self.models)):
+                store_res = self.models[model_index].predict(positive_word_list, negative_word_list)  # Predict from set and add to result list
+                temp_res = []
+                for change_res in store_res:
+                    temp_res.append([change_res[0], change_res[1]*self.weight_list[model_index]])
+                result.append(temp_res)
+
+            result = result_unpacker(result)
+            result = [list(item) for item in result]
+
+            if (result != []):
+                true_result_storage = []
+                true_result_storage.append(result[0])
+                result.pop(0)
+                for res in result:
+                    # print(res)
+                    for possible in true_result_storage:
+                        # print("assessing result")
+                        if (res[0] == possible[0]):
+                            update_prob(true_result_storage, res[0], res[1])
+                            break
+                        else:
+                            true_result_storage.append(res)
+                            break
+
+                best_result = sorted(true_result_storage, key=lambda x: int(x[1]))
+                if (wanted_printed == True):
+                    print(positive_word_list)
+                    print(negative_word_list)
+                    print(best_result)
+                return best_result[0]
+            else:
+                return [None]
 
     def similarity_avg_proberbility(self, word_one, word_two):
         results=[]
