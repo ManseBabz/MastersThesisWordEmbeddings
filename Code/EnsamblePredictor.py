@@ -185,16 +185,16 @@ class simple_ensamble:
                     else:
                         a, b, c, expected = [word for word in line.split()]
                 except ValueError:
-                    print("skipping invalid line #%i in %s", line_no, questions)
+                    #print("skipping invalid line #%i in %s", line_no, questions)
                     continue
                 predicted = [None, None]
                 if predictor_method == 0:
-                    print("Evaluation method: Majority vote")
+                    #print("Evaluation method: Majority vote")
                     predicted = simple_ensamble.predict_majority_vote(self, positive_word_list=[b, c],
                                                                         negative_word_list=[a],
                                                                         top_n_words=1)
                 elif predictor_method == 1:
-                    print("Evaluation method: Sumed most probable")
+                    #print("Evaluation method: Sumed most probable")
                     predicted = simple_ensamble.predict_sum_proberbility(self, positive_word_list=[b, c],
                                                                            negative_word_list=[a],
                                                                            top_n_words=1)
@@ -287,20 +287,36 @@ class simple_ensamble:
 """
 class boot_strap_aggregator:
     def setup(self):
-        self.models = ps.setup(self.model_list, dev_mode=self.dev_mode, training_articles=self.training_articles)
+        if(len(self.model_list)<5):
+            self.models = ps.setup(self.model_list, dev_mode=self.dev_mode, training_articles=self.training_articles)
+        else:
+            self.large_model = True
 
     def predict_majority_vote(self, positive_word_list, negative_word_list, top_n_words, wanted_printed=False):
         result = []  # List of results from the different predictors
         best_result = [None, 0]  # Best result found
         # Predict best word
-        for model in self.models:
-            result.append(
-                model.predict(positive_word_list, negative_word_list))  # Predict from set and add to result list
-        result = result_unpacker(result)
-        result = remove_probability_from_result_list(result)
-        for res in result:
-            if (result.count(res) > best_result[1]):  # Check if next result has a better "score"
-                best_result = [res, result.count(res)]  # If better score, overwrite best result
+        if(self.large_model == False):
+            for model in self.models:
+                result.append(
+                    model.predict(positive_word_list, negative_word_list))  # Predict from set and add to result list
+            result = result_unpacker(result)
+            result = remove_probability_from_result_list(result)
+            for res in result:
+                if (result.count(res) > best_result[1]):  # Check if next result has a better "score"
+                    best_result = [res, result.count(res)]  # If better score, overwrite best result
+        else:
+            for model_string in self.model_list:
+                temp_model_string = [model_string]
+                temp_model = ps.setup(temp_model_string, self.dev_mode)
+                for temp in temp_model:
+                    result.append(temp.predict(positive_word_list, negative_word_list))
+            result = result_unpacker(result)
+            result = remove_probability_from_result_list(result)
+            for res in result:
+                if (result.count(res) > best_result[1]):  # Check if next result has a better "score"
+                    best_result = [res, result.count(res)]  # If better score, overwrite best result
+
 
         if (wanted_printed == True):
             print(positive_word_list)
@@ -437,18 +453,18 @@ class boot_strap_aggregator:
                     continue
                 predicted = [None, None]
                 if predictor_method == 0:
-                    print("Evaluation method: Majority vote")
-                    predicted = simple_ensamble.predict_majority_vote(self, positive_word_list=[b, c],
+                    #print("Evaluation method: Majority vote")
+                    predicted = boot_strap_aggregator.predict_majority_vote(self, positive_word_list=[b, c],
                                                                         negative_word_list=[a],
                                                                         top_n_words=1)
                 elif predictor_method == 1:
                     #print("Evaluation method: Sumed most probable")
-                    predicted = simple_ensamble.predict_sum_proberbility(self, positive_word_list=[b, c],
+                    predicted = boot_strap_aggregator.predict_sum_proberbility(self, positive_word_list=[b, c],
                                                                            negative_word_list=[a],
                                                                            top_n_words=1)
                 elif predictor_method == 2:
                     #print("Evaluation method: weighted sum porberbilities")
-                    predicted = simple_ensamble.predict_weighted_sum_proberbility(self, positive_word_list=[b, c],
+                    predicted = boot_strap_aggregator.predict_weighted_sum_proberbility(self, positive_word_list=[b, c],
                                                                                     negative_word_list=[a],
                                                                                     top_n_words=1)
                 else:
@@ -524,6 +540,7 @@ class boot_strap_aggregator:
         self.model_list=model_name_list
         self.dev_mode = dev_mode
         self.training_articles = training_articles
+        self.large_model = False
         boot_strap_aggregator.setup(self)
 
 
