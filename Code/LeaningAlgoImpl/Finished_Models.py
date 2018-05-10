@@ -2,7 +2,6 @@ import logging, os
 from LeaningAlgoImpl.ToolsPackage.Sentence import MySentences
 from LeaningAlgoImpl.ToolsPackage.UnZipper import ZippedSentences
 from LeaningAlgoImpl import k_mediod
-from LeaningAlgoImpl import danish_keyedvectors
 from gensim.models import KeyedVectors
 
 from gensim import utils, matutils
@@ -33,14 +32,14 @@ class Finished_Models:
         print(dir_path + '/TestingSet/' + testset)
         return self.special_danish_accuracy(dir_path + '/TestingSet/' + testset)
 
-    def get_acc_results(self, testset = 'danish-topology.txt'):
+    def get_acc_results(self, topn, testset = 'danish-topology.txt'):
         logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         print(dir_path + '/TestingSet/' + testset)
-        return self.enseemble_results(dir_path + '/TestingSet/' + testset)
+        return self.enseemble_results(dir_path + '/TestingSet/' + testset, topn)
 
-    def most_similar(self, positive_words, negative_words):
-        return self.model.most_similar(positive=positive_words, negative=negative_words, topn = 1) # Like positive=['woman', 'king'], negative=['man']
+    def most_similar(self, positive_words, negative_words, topn = 1):
+        return self.model.most_similar(positive=positive_words, negative=negative_words, topn = topn) # Like positive=['woman', 'king'], negative=['man']
 
     def doesnt_match(self, sentence):
         self.model.doesnt_match(sentence.split()) # "breakfast cereal dinner lunch" -> 'cereal'
@@ -277,7 +276,7 @@ class Finished_Models:
         print(wrong_predictions)
         return sections
 
-    def enseemble_results(self, questions):
+    def enseemble_results(self, questions, topn):
         """
                 Returns a list of the results from an accuracy test
 
@@ -317,17 +316,22 @@ class Finished_Models:
                 original_vocab = self.get_vocabulary()
                 self.set_vocabulary(new_vocab)
                 ignore = {a, b, c}  # input words to be ignored
-
+                #print('topn')
+                #print(topn)
                 # find the most likely prediction, ignoring OOV words and input words
-                sims = self.most_similar(positive_words=[b, c], negative_words=[a])
+                sims = self.most_similar(positive_words=[b, c], negative_words=[a], topn = topn)
                 # print("sims")
-                # print(sims)
+                #print(sims)
                 self.set_vocabulary(original_vocab)
+                inner_results = []
+                for predict in sims:
+                    predicted = predict[0]
+                    predicted = predicted.upper()
 
-                predicted = sims[0][0]
-                predicted = predicted.upper()
-
-                results.append(predicted)
+                    inner_results.append(predicted)
+                    #print(predicted)
+                results.append(inner_results)
+        #print(results)
 
         return results
 
