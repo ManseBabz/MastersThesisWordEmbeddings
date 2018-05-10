@@ -33,6 +33,12 @@ class Finished_Models:
         print(dir_path + '/TestingSet/' + testset)
         return self.special_danish_accuracy(dir_path + '/TestingSet/' + testset)
 
+    def get_acc_results(self, testset = 'danish-topology.txt'):
+        logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        print(dir_path + '/TestingSet/' + testset)
+        return self.enseemble_results(dir_path + '/TestingSet/' + testset)
+
     def most_similar(self, positive_words, negative_words):
         return self.model.most_similar(positive=positive_words, negative=negative_words, topn = 1) # Like positive=['woman', 'king'], negative=['man']
 
@@ -270,3 +276,59 @@ class Finished_Models:
         sections.append(total)
         print(wrong_predictions)
         return sections
+
+    def enseemble_results(self, questions):
+        """
+                Returns a list of the results from an accuracy test
+
+        """
+        ok_vocab = self.get_vocabulary()
+        new_vocab = [(w, self.model.wv.vocab[w]) for w in ok_vocab]
+        new_vocab = {w.upper(): v for w, v in new_vocab}
+        new_vocab = dict(new_vocab)
+
+        results = []
+        for line_no, line in enumerate(utils.smart_open(questions)):
+            # TODO: use level3 BLAS (=evaluate multiple questions at once), for speed
+            line = utils.to_unicode(line)
+            if line.startswith(': '):
+                continue
+            else:
+
+                try:
+                    a, b, c, expected = [word.upper() for word in line.split()]
+                except ValueError:
+                    logger.info("skipping invalid line #%i in %s", line_no, questions)
+                    continue
+                if a not in new_vocab or b not in new_vocab or c not in new_vocab or expected not in new_vocab:
+                    """if a not in new_vocab:
+                        print("Dont know: " + a)
+                    if b not in new_vocab:
+                        print("Dont know: " + b)
+                    if c not in new_vocab:
+                        print("Dont know: " + c)
+                    if expected not in new_vocab:
+                        print("Dont know: " + expected)
+                    """
+                    logger.debug("skipping line #%i with OOV words: %s", line_no, line.strip())
+                    results.append(None)
+                    continue
+
+                original_vocab = self.get_vocabulary()
+                self.set_vocabulary(new_vocab)
+                ignore = {a, b, c}  # input words to be ignored
+
+                # find the most likely prediction, ignoring OOV words and input words
+                sims = self.most_similar(positive_words=[b, c], negative_words=[a])
+                # print("sims")
+                # print(sims)
+                self.set_vocabulary(original_vocab)
+
+                predicted = sims[0][0]
+                predicted = predicted.upper()
+
+                results.append(predicted)
+
+        return results
+
+
