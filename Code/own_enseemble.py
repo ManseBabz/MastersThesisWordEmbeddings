@@ -7,15 +7,23 @@ from collections import Counter
 
 class own_enseemble:
 
-    def majority_vote(self, questions):
-        guesses = self.get_multiple_results(questions, 9)
+    def majority_vote(self, questions, topn = 1):
+        guesses = self.get_multiple_results(questions, number_of_models=9, topn=topn)
         reals = self.get_expected_acc_results(questions)
 
         combined_guesses = []
         for i in range(len(reals)):
             combined_guess = []
             for guess in guesses:
-                combined_guess.append(guess[i])
+                print(guess[i])
+
+                try:
+                    for g in guess[i]:
+                        combined_guess.append(g)
+                except TypeError:
+                    combined_guess.append(guess[i])
+
+                #combined_guess.append(guess[i])
             combined_guesses.append(combined_guess)
 
         #print(combined_guesses)
@@ -25,13 +33,13 @@ class own_enseemble:
         for guess in combined_guesses:
             count = Counter(guess)
             most_common = count.most_common(1)[0]
-            #print(most_common)
+            print(most_common)
             if(most_common[0] is None):
                 #print('hej')
                 try:
                     most_common = count.most_common(2)[1]
                 except IndexError:
-                    #print('No model has an answer')
+                    print('No model has an answer')
                     pass
 
             final_guess.append(most_common[0])
@@ -59,7 +67,7 @@ class own_enseemble:
         print(wrong)
 
 
-    def get_multiple_results(self, questions, number_of_models):
+    def get_multiple_results(self, questions, number_of_models, topn):
         name_array = []
         not_wanted = 'npy'
         onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
@@ -87,7 +95,7 @@ class own_enseemble:
 
         results = []
         for model in models:
-            results.append(model.get_acc_results(questions))
+            results.append(model.get_acc_results(topn, questions))
 
         print(results)
         return results
@@ -135,4 +143,4 @@ enseemble_test = own_enseemble()
 #enseemble_test.get_multiple_results('danish-topology.txt', 4)
 #print(enseemble_test.get_expected_acc_results('danish-topology.txt'))
 
-enseemble_test.majority_vote('danish-topology.txt')
+enseemble_test.majority_vote('danish-topology.txt', topn=10)
