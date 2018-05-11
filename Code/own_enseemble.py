@@ -7,7 +7,7 @@ from collections import Counter
 
 class own_enseemble:
 
-    def majority_vote(self, questions, topn = 1):
+    def simple_majority_vote(self, questions, topn = 1):
         guesses = self.get_multiple_results(questions, number_of_models=9, topn=topn)
         reals = self.get_expected_acc_results(questions)
 
@@ -100,6 +100,131 @@ class own_enseemble:
         print(results)
         return results
 
+    def tie_handling_majority_vote(self, questions, topn = 1):
+        guesses = self.get_multiple_tie_handling_results(questions, number_of_models=9, topn=topn)
+        reals = self.get_expected_acc_results(questions)
+
+        combined_guesses = []
+        for i in range(len(reals)):
+            combined_guess = []
+            for guess in guesses:
+                #print(guess[i])
+
+                try:
+                    for g in guess[i]:
+                        combined_guess.append(g)
+                except TypeError:
+                    combined_guess.append(guess[i])
+
+                #combined_guess.append(guess[i])
+            combined_guesses.append(combined_guess)
+
+        #print(combined_guesses)
+        #print(reals)
+
+        final_guess = []
+        for guess in combined_guesses:
+            count = self.weighted_counter(guess)
+            most_common = count[0]
+            #print(most_common)
+            if(most_common[0] is None):
+                #print('hej')
+                try:
+                    most_common = count[1]
+                except IndexError:
+                    #print('No model has an answer')
+                    pass
+            #print(most_common[0])
+            final_guess.append(most_common[0])
+        #print(final_guess)
+
+        correct = []
+        wrong = []
+        number_of_correct = 0
+        number_of_wrong = 0
+        for i in range(0, len(final_guess)):
+            predicted = final_guess[i]
+            expected = reals[i]
+            if predicted == expected:
+                correct_message = ("predicted: %s correct" % (predicted))
+                correct.append(correct_message)
+                number_of_correct += 1
+            else:
+                wrong_message = ("predicted: %s, should have been: %s" % (predicted, expected))
+                wrong.append(wrong_message)
+                number_of_wrong += 1
+
+        print('Correct ' + str(number_of_correct))
+        print(correct)
+        print('Wrong ' + str(number_of_wrong))
+        print(wrong)
+
+    def weighted_counter(self, guess_list):
+        #print('guess')
+        #print(guess_list)
+        combined_guess_list = []
+        #print(guess_list[0])
+
+        #if guess_list is None:
+            #return [[None]]
+        for i in range(0, len(guess_list)):
+            if guess_list[i] is not None:
+                guess, value = guess_list[i]
+                not_found = True
+                for i in range(0, len(combined_guess_list)):
+                    word, old_value = combined_guess_list[i]
+                    if guess == word:
+                        combined_guess_list[i] = (guess, value + old_value)
+                        not_found = False
+
+                if not_found:
+                    combined_guess_list.append((guess, value))
+            else:
+                #print('None')
+                combined_guess_list.append((None, 0))
+            #print(combined_guess_list)
+
+        sorted_combined_guess_list = sorted(combined_guess_list, key=lambda x: x[1], reverse=True)
+        #print(sorted_combined_guess_list)
+        return sorted_combined_guess_list
+
+
+
+
+
+    def get_multiple_tie_handling_results(self, questions, number_of_models, topn):
+        name_array = []
+        not_wanted = 'npy'
+        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
+                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+        for file_index in range(0, len(onlyfiles)):
+            if (not_wanted in onlyfiles[file_index]):
+                continue
+            else:
+                name_array.append(onlyfiles[file_index])
+
+        print(name_array)
+        models = []
+        i = 0
+        for name in name_array:
+            if number_of_models > i:
+                print(name)
+                finished_model = FM.Finished_Models()
+                finished_model.get_model(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+                models.append(finished_model)
+                i += 1
+            else:
+                continue
+
+        print(models)
+
+        results = []
+        for model in models:
+            results.append(model.get_acc_results_extra(topn, questions))
+
+        #print(results)
+        return results
+
     def get_expected_acc_results(self, questions):
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         questions = dir_path + '/Code/TestingSet/' + questions
@@ -143,4 +268,6 @@ enseemble_test = own_enseemble()
 #enseemble_test.get_multiple_results('danish-topology.txt', 4)
 #print(enseemble_test.get_expected_acc_results('danish-topology.txt'))
 
-enseemble_test.majority_vote('danish-topology.txt', topn=10)
+enseemble_test.simple_majority_vote('danish-topology.txt', topn=10)
+
+enseemble_test.tie_handling_majority_vote('danish-topology.txt', topn=10)
