@@ -29,19 +29,21 @@ def generate_statistics(startingpoint = 5, endpoint = 50, skips = 5, iterations 
 
     return results
 
-def experiment(startingpoint=5, endpoint=50, skips=5, iterations=5, topn=10):
+def experiment(startingpoint=5, endpoint=400, skips=50, iterations=5, topn=10):
     while True:
         try:  # used try so that if user pressed other than the given key error will not be shown
             if keyboard.is_pressed(' '):  # if key 'q' is pressed
-                generate_statistics(startingpoint=random.randint(1, startingpoint), endpoint=random.randint(startingpoint+1, endpoint),
-                                    skips=random.randint(1, skips), iterations=random.randint(1, iterations), topn=random.randint(1, topn))
+
                 print('finishing')
                 break  # finishing the loop
             else:
-                pass
+                generate_statistics(startingpoint=random.randint(1, startingpoint),
+                                    endpoint=random.randint(startingpoint + 1, endpoint),
+                                    skips=random.randint(1, skips), iterations=random.randint(1, iterations),
+                                    topn=random.randint(1, topn))
         except:
             break
 
 
 
-if __name__ == "__main__": generate_statistics(startingpoint=1, endpoint=7, skips=5, iterations=1)
+if __name__ == "__main__": experiment()
