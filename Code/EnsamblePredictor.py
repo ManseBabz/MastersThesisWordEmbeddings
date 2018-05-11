@@ -3,6 +3,12 @@ import os, operator
 import numpy as np
 from scipy import stats
 from Our_FastText import utils
+from collections import Counter
+from os.path import isfile, join
+from os import listdir
+import LeaningAlgoImpl.Finished_Models as FM
+import numpy.random as random
+
 """
 This module contains multiple ensamble methods
 """
@@ -428,62 +434,196 @@ class boot_strap_aggregator:
             res = sum(results) / len(results)
         return res
 
-    def accuracy(self, questions, case_insensitive=True, predictor_method=0):
-        correct = 0
-        incorrect = 0
-        sections, section = [], None
+    def majority_vote_fast(self, questions, topn=1, number_of_models = 20):
+        guesses = self.get_multiple_results(questions, number_of_models=number_of_models, topn=topn)
+        reals = self.get_expected_acc_results(questions)
+
+        combined_guesses = []
+        for i in range(len(reals)):
+            combined_guess = []
+            for guess in guesses:
+                #print(guess[i])
+
+                try:
+                    for g in guess[i]:
+                        combined_guess.append(g)
+                except TypeError:
+                    combined_guess.append(guess[i])
+
+                # combined_guess.append(guess[i])
+            combined_guesses.append(combined_guess)
+
+        # print(combined_guesses)
+        # print(reals)
+
+        final_guess = []
+        for guess in combined_guesses:
+            count = Counter(guess)
+            most_common = count.most_common(1)[0]
+            #print(most_common)
+            if (most_common[0] is None):
+                # print('hej')
+                try:
+                    most_common = count.most_common(2)[1]
+                except IndexError:
+                    #print('No model has an answer')
+                    pass
+
+            final_guess.append(most_common[0])
+        #print(final_guess)
+
+        correct = []
+        wrong = []
+        number_of_correct = 0
+        number_of_wrong = 0
+        for i in range(0, len(final_guess)):
+            predicted = final_guess[i]
+            expected = reals[i]
+            if predicted == expected:
+                correct_message = ("predicted: %s correct" % (predicted))
+                correct.append(correct_message)
+                number_of_correct += 1
+            else:
+                wrong_message = ("predicted: %s, should have been: %s" % (predicted, expected))
+                wrong.append(wrong_message)
+                number_of_wrong += 1
+
+        print('Correct ' + str(number_of_correct))
+        #print(correct)
+        print('Wrong ' + str(number_of_wrong))
+        #print(wrong)
+        return number_of_correct, number_of_wrong
+
+    def get_multiple_results(self, questions, topn, number_of_models=5):
+        name_array = []
+        not_wanted = ['npy', 'Readme.md']
+        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
+                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+        for file_index in range(0, len(onlyfiles)):
+            if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1]in onlyfiles[file_index]):
+                continue
+            else:
+                name_array.append(onlyfiles[file_index])
+
+        #print(name_array)
+        models = []
+        random.shuffle(name_array)
+        #print(name_array)
+        i = 0
+        for name in name_array:
+            if number_of_models > i:
+                print(name)
+                finished_model = FM.Finished_Models()
+                finished_model.get_model(
+                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+                models.append(finished_model)
+                i += 1
+            else:
+                continue
+
+        #print(models)
+
+        results = []
+        for model in models:
+            results.append(model.get_acc_results(topn, questions))
+
+        #print(results)
+        return results
+
+    def get_expected_acc_results(self, questions):
+        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        questions = dir_path + '/Code/TestingSet/' + questions
+        """
+                Returns a list of the expected results from an accuracy test
+
+        """
+        results = []
         for line_no, line in enumerate(utils.smart_open(questions)):
             # TODO: use level3 BLAS (=evaluate multiple questions at once), for speed
             line = utils.to_unicode(line)
             if line.startswith(': '):
-                # a new section starts => store the old section
-                if section:
-                    sections.append(section)
-                section = {'section': line.lstrip(': ').strip(), 'correct': [], 'incorrect': []}
+                continue
             else:
-                if not section:
-                    raise ValueError("missing section header before line #%i in %s" % (line_no, questions))
                 try:
-                    if case_insensitive:
-                        a, b, c, expected = [word.upper() for word in line.split()]
-                    else:
-                        a, b, c, expected = [word for word in line.split()]
+                    a, b, c, expected = [word.upper() for word in line.split()]
                 except ValueError:
-                    print("skipping invalid line #%i in %s", line_no, questions)
+                    logger.info("skipping invalid line #%i in %s", line_no, questions)
                     continue
-                predicted = [None, None]
-                if predictor_method == 0:
-                    #print("Evaluation method: Majority vote")
-                    predicted = boot_strap_aggregator.predict_majority_vote(self, positive_word_list=[b, c],
-                                                                        negative_word_list=[a],
-                                                                        top_n_words=1)
-                elif predictor_method == 1:
-                    #print("Evaluation method: Sumed most probable")
-                    predicted = boot_strap_aggregator.predict_sum_proberbility(self, positive_word_list=[b, c],
-                                                                           negative_word_list=[a],
-                                                                           top_n_words=1)
-                elif predictor_method == 2:
-                    #print("Evaluation method: weighted sum porberbilities")
-                    predicted = boot_strap_aggregator.predict_weighted_sum_proberbility(self, positive_word_list=[b, c],
-                                                                                    negative_word_list=[a],
-                                                                                    top_n_words=1)
-                else:
-                    raise ValueError("incorrect argument type for predictor_method")
 
-                if predicted[0] == expected:
-                    correct += 1
-                    section['correct'].append((a, b, c, expected))
-                else:
-                    incorrect +=1
-                    section['incorrect'].append((a, b, c, expected))
-        if section:
-            # store the last section, too
-            sections.append(section)
+                results.append(expected)
+        return results
 
-        print(correct)
-        print(incorrect)
-        #sections.append(total)
-        return sections
+    def get_acc_results(self, model, questions):
+        return model.get_acc_results(questions)
+
+
+
+
+
+
+
+
+
+    def accuracy(self, questions, case_insensitive=True, predictor_method=0, fast_process=True, number_of_models=20):
+        correct = 0
+        incorrect = 0
+        sections, section = [], None
+        if(fast_process == False):
+            for line_no, line in enumerate(utils.smart_open(questions)):
+                # TODO: use level3 BLAS (=evaluate multiple questions at once), for speed
+                line = utils.to_unicode(line)
+                if line.startswith(': '):
+                    # a new section starts => store the old section
+                    if section:
+                        sections.append(section)
+                    section = {'section': line.lstrip(': ').strip(), 'correct': [], 'incorrect': []}
+                else:
+                    if not section:
+                        raise ValueError("missing section header before line #%i in %s" % (line_no, questions))
+                    try:
+                        if case_insensitive:
+                            a, b, c, expected = [word.upper() for word in line.split()]
+                        else:
+                            a, b, c, expected = [word for word in line.split()]
+                    except ValueError:
+                        print("skipping invalid line #%i in %s", line_no, questions)
+                        continue
+                    predicted = [None, None]
+                    if predictor_method == 0:
+                        #print("Evaluation method: Majority vote")
+                        predicted = boot_strap_aggregator.predict_majority_vote(self, positive_word_list=[b, c],
+                                                                            negative_word_list=[a],
+                                                                            top_n_words=1)
+                    elif predictor_method == 1:
+                        #print("Evaluation method: Sumed most probable")
+                        predicted = boot_strap_aggregator.predict_sum_proberbility(self, positive_word_list=[b, c],
+                                                                               negative_word_list=[a],
+                                                                               top_n_words=1)
+                    elif predictor_method == 2:
+                        #print("Evaluation method: weighted sum porberbilities")
+                        predicted = boot_strap_aggregator.predict_weighted_sum_proberbility(self, positive_word_list=[b, c],
+                                                                                        negative_word_list=[a],
+                                                                                        top_n_words=1)
+                    else:
+                        raise ValueError("incorrect argument type for predictor_method")
+
+                    if predicted[0] == expected:
+                        correct += 1
+                        section['correct'].append((a, b, c, expected))
+                    else:
+                        incorrect +=1
+                        section['incorrect'].append((a, b, c, expected))
+            if section:
+                # store the last section, too
+                sections.append(section)
+
+            print(correct)
+            print(incorrect)
+            #sections.append(total)
+            return sections
+        else:
+            correct, wrong = boot_strap_aggregator.majority_vote_fast(self, questions=questions, topn=10, number_of_models=number_of_models)
+            return correct, wrong
 
     def evaluate_word_pairs(self, pairs, delimiter='\t', restrict_vocab=300000,
                             case_insensitive=False, dummy4unknown=False, similarity_model_type="0"):
@@ -535,7 +675,7 @@ class boot_strap_aggregator:
     def set_weights(self, weight_list):
         self.weight_list = weight_list
 
-    def __init__(self, model_name_list, dev_mode=False, training_articles=10000):
+    def __init__(self, model_name_list = [], dev_mode=False, training_articles=10000):
         self.models = []
         self.model_list=model_name_list
         self.dev_mode = dev_mode

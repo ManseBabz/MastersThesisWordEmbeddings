@@ -29,9 +29,9 @@ def generate_array_of_all_trained_model_specification():
 
 def question_word_test():
     ensamble = EP.boot_strap_aggregator(generate_array_of_all_trained_model_specification())
-    dir_path = os.path.dirname(os.path.realpath(__file__))+"/TestingSet/questions-words.txt"
+    dir_path = "questions-words.txt"
     #ensamble.set_weights([1, 0.5])
-    ensamble.accuracy(dir_path, predictor_method=0)
+    ensamble.accuracy(dir_path, predictor_method=0, number_of_models=2)
 
 def word_sim_test():
     ensamble = EP.simple_ensamble(generate_array_of_all_trained_model_specification)
