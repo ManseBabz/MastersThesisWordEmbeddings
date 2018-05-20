@@ -12,20 +12,19 @@ def generate_statistics(startingpoint = 5, endpoint = 50, skips = 5, iterations 
                 f = open("Ensamble_test_results.csv", "a")
             else:
                 f = open("Ensamble_test_results.csv", "w")
-            print(j)
             ensamble_model = BS.boot_strap_aggregator()
             dir_path = "questions-words.txt"
             right, wrong = ensamble_model.accuracy(dir_path, number_of_models=i)
             res = [[i, topn, right, wrong]]
-            print(res)
             results.append(res)
+            print(res)
             np.savetxt(f, res, delimiter=',')
             f.close()
             print('iteration finished')
     print(results)
     return results
 
-def experiment1(startingpoint=5, endpoint=30, skips=5, iterations=5, topn=10):
+def experiment1(startingpoint=150, endpoint=155, skips=5, iterations=1, topn=10):
     while True:
         start =random.randint(startingpoint, endpoint)
         generate_statistics(startingpoint=start,
@@ -42,10 +41,10 @@ def generate_statistics_with_weighted_majorityvote_ensamble(startingpoint = 5, e
                 f = open("weighted_majority_vote_Ensamble_test_results.csv", "a")
             else:
                 f = open("weighted_majority_vote_Ensamble_test_results.csv", "w")
-            print(j)
+
             ensamble_model = BS.boot_strap_aggregator()
             dir_path = "questions-words.txt"
-            right, wrong = ensamble_model.accuracy(dir_path, number_of_models=i, predictor_method=3)
+            right, wrong = ensamble_model.accuracy(dir_path, number_of_models=i, predictor_method=1)
             res = [[i, topn, right, wrong]]
             print(res)
             results.append(res)
@@ -65,6 +64,34 @@ def experiment2(startingpoint=150, endpoint=155, skips=5, iterations=1, topn=10)
                             topn=random.randint(1, topn))
 
 
+def generate_statistics_with_weighted_majorityvote_ensamble(startingpoint = 5, endpoint = 50, skips = 5, iterations = 5, topn=10):
+    results = []
+    for i in range(startingpoint, endpoint, skips):
+        for j in range(0, iterations):
+            if (os.path.isfile("tie_breaking_weighted_majority_vote.csv")):
+                f = open("tie_breaking_weighted_majority_vote.csv", "a")
+            else:
+                f = open("tie_breaking_weighted_majority_vote.csv", "w")
+
+            ensamble_model = BS.boot_strap_aggregator()
+            dir_path = "questions-words.txt"
+            right, wrong = ensamble_model.accuracy(dir_path, number_of_models=i, predictor_method=3)
+            res = [[i, topn, right, wrong]]
+            print(res)
+            results.append(res)
+            np.savetxt(f, res, delimiter=',')
+            f.close()
+            print('iteration finished')
+
+    print(results)
+    return results
+
+def experiment3(startingpoint=2, endpoint=155, skips=5, iterations=5, topn=10):
+    while True:
+        start =startingpoint
+        generate_statistics_with_weighted_majorityvote_ensamble()
 
 
-if __name__ == "__main__": experiment2()
+
+
+if __name__ == "__main__": experiment3()
