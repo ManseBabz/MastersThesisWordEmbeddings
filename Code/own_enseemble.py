@@ -4,6 +4,8 @@ from os import listdir
 from os.path import isfile, join
 from gensim import utils
 from collections import Counter
+import numpy.random as random
+from scipy import stats
 
 class own_enseemble:
 
@@ -342,12 +344,90 @@ class own_enseemble:
                 results.append(expected)
         return results
 
-    def get_acc_results(self, model, questions):
-        return model.get_acc_results(questions)
+    def naive_human_similarity_majority_vote(self, questions, number_of_models):
+        reals = self.get_human_similarities_results(questions)
+        guesses = self.get_model_similarities_results(questions, number_of_models)
+
+        combined_guesses = []
+        for j in range(0, len(guesses[0][0])):
+            combined_guess = []
+            for i in range(0, number_of_models):
+                combined_guess.append(guesses[i][0][j])
+            #print(combined_guess)
+            combined_guesses.append(combined_guess)
+        #print(combined_guesses)
+
+        average_guesses = []
+        for guess in combined_guesses:
+            average_guess = sum(guess)/len(guess)
+            average_guesses.append(average_guess)
+
+        print(len(reals))
+        print(reals)
+        print(len(average_guesses))
+        print(average_guesses)
+
+        spearman_result = stats.spearmanr(reals, average_guesses)
+        pearson_result = stats.pearsonr(reals, average_guesses)
+        return spearman_result, pearson_result
+
+
+    def get_human_similarities_results(self, test_set):
+        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        test_set = dir_path + '/Code/TestingSet/' + test_set
+        results = []
+        for line_no, line in enumerate(utils.smart_open(test_set)):
+            line = utils.to_unicode(line)
+            if line.startswith('#'):
+                # May be a comment
+                continue
+            else:
+                try:
+
+                    a, b, sim = [word.upper() for word in line.split('\t')]
+
+                    sim = float(sim)
+                except (ValueError, TypeError):
+                    logger.info('skipping invalid line #%d in %s', line_no, test_set)
+                    continue
+
+                results.append(sim)  # Similarity from the dataset
+        return results
+
+    def get_model_similarities_results(self, questions, number_of_models):
+        name_array = []
+        not_wanted = ['npy', 'Readme.md']
+        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
+                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+        for file_index in range(0, len(onlyfiles)):
+            if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1] in onlyfiles[file_index]):
+                continue
+            else:
+                name_array.append(onlyfiles[file_index])
+
+        # print(name_array)
+        random.shuffle(name_array)
+        results = []
+        i = 0
+        for name in name_array:
+            if number_of_models > i:
+                print(name)
+                finished_model = FM.Finished_Models()
+                finished_model.get_model(
+                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+                results.append(finished_model.model_similarity_results(questions))
+                i += 1
+            else:
+                continue
+
+        # print(results)
+        return results
 
 
     def __init__(self):
         print("init")
+
+
 
 dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
@@ -362,8 +442,12 @@ enseemble_test = own_enseemble()
 #enseemble_test.get_multiple_results('danish-topology.txt', 4)
 #print(enseemble_test.get_expected_acc_results('danish-topology.txt'))
 
-enseemble_test.simple_majority_vote('danish-topology.txt', topn=10)
+#enseemble_test.simple_majority_vote('danish-topology.txt', topn=10)
 
-enseemble_test.certainess_tie_handling_majority_vote('danish-topology.txt', topn=10)
+#enseemble_test.certainess_tie_handling_majority_vote('danish-topology.txt', topn=10)
 
-enseemble_test.position_based_tie_handling_majority_vote('danish-topology.txt', topn=10)
+#enseemble_test.position_based_tie_handling_majority_vote('danish-topology.txt', topn=10)
+
+print(enseemble_test.get_human_similarities_results('wordsim353.tsv'))
+#print(enseemble_test.get_model_similarities_results('wordsim353.tsv', 10))
+print(enseemble_test.naive_human_similarity_majority_vote('wordsim353.tsv', 10))

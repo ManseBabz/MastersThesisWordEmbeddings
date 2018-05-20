@@ -247,7 +247,6 @@ class boot_strap_aggregator:
 
         #print(name_array)
         models = []
-        results = []
         random.shuffle(name_array)
         #print(name_array)
         i = 0
@@ -257,18 +256,116 @@ class boot_strap_aggregator:
                 finished_model = FM.Finished_Models()
                 finished_model.get_model(
                     os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
-                results.append(finished_model.get_acc_results(topn, questions))
+                models.append(finished_model)
                 i += 1
             else:
                 continue
 
         #print(models)
 
+        results = []
+        for model in models:
+            results.append(model.get_acc_results(topn, questions))
+
         #print(results)
         return results
 
 
+    def position_based_tie_handling_majority_vote(self, questions, topn = 1, number_of_models=10):
+        guesses = self.get_multiple_results(questions, number_of_models=number_of_models, topn=topn)
+        reals = self.get_expected_acc_results(questions)
 
+        combined_guesses = []
+        for i in range(len(reals)):
+            combined_guess = []
+            for guess in guesses:
+                #print(guess[i])
+
+                try:
+                    for j in range(0, len(guess[i])):
+                        combined_guess.append((guess[i][j], j))
+                except TypeError:
+                    combined_guess.append(guess[i])
+
+                #combined_guess.append(guess[i])
+            combined_guesses.append(combined_guess)
+
+        #print(combined_guesses)
+        #print(reals)
+
+        final_guess = []
+        for guess in combined_guesses:
+            count = self.position_counter(guess)
+            most_common = count[0]
+            #print(most_common)
+            if(most_common[0] is None):
+                #print('hej')
+                try:
+                    most_common = count[1]
+                except IndexError:
+                    #print('No model has an answer')
+                    pass
+            #print(most_common[0])
+            final_guess.append(most_common[0])
+        #print(final_guess)
+
+        correct = []
+        wrong = []
+        number_of_correct = 0
+        number_of_wrong = 0
+        for i in range(0, len(final_guess)):
+            predicted = final_guess[i]
+            expected = reals[i]
+            if predicted == expected:
+                correct_message = ("predicted: %s correct" % (predicted))
+                correct.append(correct_message)
+                number_of_correct += 1
+            else:
+                wrong_message = ("predicted: %s, should have been: %s" % (predicted, expected))
+                wrong.append(wrong_message)
+                number_of_wrong += 1
+
+        print('Correct ' + str(number_of_correct))
+        print(correct)
+        print('Wrong ' + str(number_of_wrong))
+        print(wrong)
+        return number_of_correct, number_of_wrong
+
+    def position_counter(self, guess_list):
+        # print('guess')
+        #print(guess_list)
+        combined_guess_list = []
+        # print(guess_list[0])
+
+        # if guess_list is None:
+        # return [[None]]
+        for i in range(0, len(guess_list)):
+            if guess_list[i] is not None:
+                guess, value = guess_list[i]
+                not_found = True
+                for i in range(0, len(combined_guess_list)):
+                    word, old_value, number_of_appearances = combined_guess_list[i]
+                    if guess == word:
+                        combined_guess_list[i] = [guess, value + old_value, number_of_appearances + 1]
+                        not_found = False
+
+                if not_found:
+                    combined_guess_list.append((guess, value, 1))
+            else:
+                # print('None')
+                combined_guess_list.append((None, 0, 0))
+                # print(combined_guess_list)
+
+        sorted_combined_guess_list = sorted(combined_guess_list, key=lambda x: x[2], reverse=True)
+        #print(sorted_combined_guess_list)
+        max_number_of_appearance = []
+        for i in range(0, len(sorted_combined_guess_list)):
+            #print(sorted_combined_guess_list[i])
+            if sorted_combined_guess_list[0][2] == sorted_combined_guess_list[i][2]:
+                max_number_of_appearance.append((sorted_combined_guess_list[i][0], sorted_combined_guess_list[i][1]))
+        sorted_combined_guess_list = sorted(max_number_of_appearance, key=lambda x: x[1], reverse=False)
+        #print(sorted_combined_guess_list)
+        return sorted_combined_guess_list
 
 
 
@@ -278,6 +375,8 @@ class boot_strap_aggregator:
         guesses = self.get_multiple_tie_handling_results(questions, number_of_models=number_of_models, topn=topn)
         reals = self.get_expected_acc_results(questions)
 
+        #print(reals)
+        print(guesses)
         combined_guesses = []
         for i in range(len(reals)):
             combined_guess = []
@@ -298,7 +397,9 @@ class boot_strap_aggregator:
 
         final_guess = []
         for guess in combined_guesses:
+
             count = self.weighted_counter(guess)
+
             most_common = count[0]
             #print(most_common)
             if(most_common[0] is None):
@@ -400,99 +501,6 @@ class boot_strap_aggregator:
 
 
 
-    def certainess_tie_handling_majority_vote(self, questions, topn = 1, number_of_models=10):
-        guesses = self.get_multiple_certainess_tie_handling_results(questions, number_of_models=2, topn=topn)
-        reals = self.get_expected_acc_results(questions)
-
-        combined_guesses = []
-        for i in range(len(reals)):
-            combined_guess = []
-            for guess in guesses:
-                #print(guess[i])
-
-                try:
-                    for g in guess[i]:
-                        combined_guess.append(g)
-                except TypeError:
-                    combined_guess.append(guess[i])
-
-                #combined_guess.append(guess[i])
-            combined_guesses.append(combined_guess)
-
-        #print(combined_guesses)
-        #print(reals)
-
-        final_guess = []
-        for guess in combined_guesses:
-            count = self.weighted_counter(guess)
-            most_common = count[0]
-            #print(most_common)
-            if(most_common[0] is None):
-                #print('hej')
-                try:
-                    most_common = count[1]
-                except IndexError:
-                    #print('No model has an answer')
-                    pass
-            #print(most_common[0])
-            final_guess.append(most_common[0])
-        #print(final_guess)
-
-        correct = []
-        wrong = []
-        number_of_correct = 0
-        number_of_wrong = 0
-        for i in range(0, len(final_guess)):
-            predicted = final_guess[i]
-            expected = reals[i]
-            if predicted == expected:
-                correct_message = ("predicted: %s correct" % (predicted))
-                correct.append(correct_message)
-                number_of_correct += 1
-            else:
-                wrong_message = ("predicted: %s, should have been: %s" % (predicted, expected))
-                wrong.append(wrong_message)
-                number_of_wrong += 1
-
-        print('Correct ' + str(number_of_correct))
-        #print(correct)
-        print('Wrong ' + str(number_of_wrong))
-        #print(wrong)
-        return number_of_correct, number_of_wrong
-
-
-    def get_multiple_certainess_tie_handling_results(self, questions, number_of_models, topn):
-        name_array = []
-        not_wanted = 'npy'
-        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
-                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
-        for file_index in range(0, len(onlyfiles)):
-            if (not_wanted in onlyfiles[file_index]):
-                continue
-            else:
-                name_array.append(onlyfiles[file_index])
-
-        #print(name_array)
-        results = []
-        i = 0
-        for name in name_array:
-            if number_of_models > i:
-                #print(name)
-                finished_model = FM.Finished_Models()
-                finished_model.get_model(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
-                results.append(finished_model.get_acc_results_extra(topn, questions))
-                i += 1
-            else:
-                continue
-
-
-
-
-        #print(results)
-        return results
-
-
-
 
 
     def get_expected_acc_results(self, questions):
@@ -590,13 +598,12 @@ class boot_strap_aggregator:
             if(predictor_method== 0):
                 correct, wrong = boot_strap_aggregator.majority_vote_fast(self, questions=questions, topn=10, number_of_models=number_of_models)
                 return correct, wrong
-            elif(predictor_method==1):
+            elif(predictor_method==3):
                 correct, wrong = boot_strap_aggregator.tie_handling_majority_vote(self, questions=questions, topn=10,
                                                                           number_of_models=number_of_models)
                 return correct, wrong
-            elif (predictor_method == 3):
-                correct, wrong = boot_strap_aggregator.certainess_tie_handling_majority_vote(self, questions=questions, topn=10,
-                                                                                             number_of_models=number_of_models)
+            elif(predictor_method==4):
+                correct, wrong = boot_strap_aggregator.position_based_tie_handling_majority_vote(self, questions=questions, topn=10, number_of_models=number_of_models)
                 return correct, wrong
 
     def evaluate_word_pairs(self, pairs, delimiter='\t', restrict_vocab=300000,
