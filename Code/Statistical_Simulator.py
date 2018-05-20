@@ -64,7 +64,7 @@ def experiment2(startingpoint=150, endpoint=155, skips=5, iterations=1, topn=10)
                             topn=random.randint(1, topn))
 
 
-def generate_statistics_with_weighted_majorityvote_ensamble(startingpoint = 5, endpoint = 50, skips = 5, iterations = 5, topn=10):
+def generate_statistics_with_weighted_tiebreaking_majorityvote_ensamble(startingpoint = 5, endpoint = 50, skips = 5, iterations = 5, topn=10):
     results = []
     for i in range(startingpoint, endpoint, skips):
         for j in range(0, iterations):
@@ -86,10 +86,14 @@ def generate_statistics_with_weighted_majorityvote_ensamble(startingpoint = 5, e
     print(results)
     return results
 
-def experiment3(startingpoint=2, endpoint=155, skips=5, iterations=5, topn=10):
+def experiment3(startingpoint=5, endpoint=155, skips=5, iterations=5, topn=10):
     while True:
         start =startingpoint
-        generate_statistics_with_weighted_majorityvote_ensamble()
+        generate_statistics_with_weighted_tiebreaking_majorityvote_ensamble(startingpoint=startingpoint,
+                                                                endpoint=random.randint(start + 1, endpoint),
+                                                                skips=random.randint(1, skips),
+                                                                iterations=random.randint(1, iterations),
+                                                                topn=random.randint(1, topn))
 
 
 
