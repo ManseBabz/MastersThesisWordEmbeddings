@@ -458,6 +458,7 @@ class boot_strap_aggregator:
         #print(correct)
         print('Wrong ' + str(number_of_wrong))
         #print(wrong)
+        return number_of_correct, number_of_wrong
 
 
     def get_multiple_certainess_tie_handling_results(self, questions, number_of_models, topn):
