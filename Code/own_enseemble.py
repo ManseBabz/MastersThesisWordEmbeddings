@@ -371,6 +371,110 @@ class own_enseemble:
         pearson_result = stats.pearsonr(reals, average_guesses)
         return spearman_result, pearson_result
 
+    def ignore_oov_human_similarity_majority_vote(self, questions, number_of_models):
+        reals = self.get_human_similarities_results(questions)
+        guesses = self.get_model_similarities_results(questions, number_of_models)
+
+        combined_guesses = []
+        for j in range(0, len(guesses[0][0])):
+            combined_guess = []
+            for i in range(0, number_of_models):
+                if guesses[i][0][j] == 0.0:
+                    continue
+                combined_guess.append(guesses[i][0][j])
+            # print(combined_guess)
+            combined_guesses.append(combined_guess)
+        # print(combined_guesses)
+
+        average_guesses = []
+        for guess in combined_guesses:
+            print(len(guess))
+            if len(guess) == 0:
+                average_guesses.append(0.0)
+            else:
+                average_guess = sum(guess) / len(guess)
+                average_guesses.append(average_guess)
+
+        print(len(reals))
+        print(reals)
+        print(len(average_guesses))
+        print(average_guesses)
+
+        spearman_result = stats.spearmanr(reals, average_guesses)
+        pearson_result = stats.pearsonr(reals, average_guesses)
+        return spearman_result, pearson_result
+
+    def weight_based_on_oov_human_similarity_majority_vote(self, questions, number_of_models):
+        reals = self.get_human_similarities_results(questions)
+        guesses = self.get_model_similarities_results(questions, number_of_models)
+
+        combined_guesses = []
+        for j in range(0, len(guesses[0][0])):
+            combined_guess = []
+            for i in range(0, number_of_models):
+                combined_guess.append((guesses[i][0][j], guesses[i][1]))
+            print(combined_guess)
+            combined_guesses.append(combined_guess)
+            # print(combined_guesses)
+
+        average_guesses = []
+        for guess in combined_guesses:
+            combined_oov = 0
+            for g in guess:
+                combined_oov += g[1]
+            weighted_guess = 0
+            for g in guess:
+                weighted_guess += g[0] * (g[1] / combined_oov)
+
+            average_guesses.append(weighted_guess)
+
+        print(len(reals))
+        print(reals)
+        print(len(average_guesses))
+        print(average_guesses)
+
+        spearman_result = stats.spearmanr(reals, average_guesses)
+        pearson_result = stats.pearsonr(reals, average_guesses)
+        return spearman_result, pearson_result
+
+    def weight_based_on_total_oov_ignore_oov_human_similarity_majority_vote(self, questions, number_of_models):
+        reals = self.get_human_similarities_results(questions)
+        guesses = self.get_model_similarities_results(questions, number_of_models)
+
+        combined_guesses = []
+        for j in range(0, len(guesses[0][0])):
+            combined_guess = []
+            for i in range(0, number_of_models):
+                if guesses[i][0][j] == 0.0:
+                    continue
+                combined_guess.append((guesses[i][0][j], guesses[i][1]))
+            print(combined_guess)
+            combined_guesses.append(combined_guess)
+            # print(combined_guesses)
+
+        average_guesses = []
+        for guess in combined_guesses:
+            if len(guess) == 0:
+                average_guesses.append(0.0)
+                continue
+            combined_oov = 0
+            for g in guess:
+                combined_oov += g[1]
+            weighted_guess = 0
+            for g in guess:
+                weighted_guess += g[0] * (g[1] / combined_oov)
+
+            average_guesses.append(weighted_guess)
+
+        print(len(reals))
+        print(reals)
+        print(len(average_guesses))
+        print(average_guesses)
+
+        spearman_result = stats.spearmanr(reals, average_guesses)
+        pearson_result = stats.pearsonr(reals, average_guesses)
+        return spearman_result, pearson_result
+
 
     def get_human_similarities_results(self, test_set):
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -450,4 +554,7 @@ enseemble_test = own_enseemble()
 
 print(enseemble_test.get_human_similarities_results('wordsim353.tsv'))
 #print(enseemble_test.get_model_similarities_results('wordsim353.tsv', 10))
-print(enseemble_test.naive_human_similarity_majority_vote('wordsim353.tsv', 10))
+#print(enseemble_test.naive_human_similarity_majority_vote('wordsim353.tsv', 10))
+#print(enseemble_test.ignore_oov_human_similarity_majority_vote('wordsim353.tsv', 10))
+print(enseemble_test.weight_based_on_oov_human_similarity_majority_vote('wordsim353.tsv', 10))
+print(enseemble_test.weight_based_on_total_oov_ignore_oov_human_similarity_majority_vote('wordsim353.tsv', 10))
