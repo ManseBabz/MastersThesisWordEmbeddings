@@ -234,43 +234,6 @@ class boot_strap_aggregator:
         #print(wrong)
         return number_of_correct, number_of_wrong
 
-    def get_multiple_results(self, questions, topn, number_of_models=5):
-        name_array = []
-        not_wanted = ['npy', 'Readme.md']
-        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
-                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
-        for file_index in range(0, len(onlyfiles)):
-            if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1]in onlyfiles[file_index]):
-                continue
-            else:
-                name_array.append(onlyfiles[file_index])
-
-        #print(name_array)
-        models = []
-        random.shuffle(name_array)
-        #print(name_array)
-        i = 0
-        for name in name_array:
-            if number_of_models > i:
-                print(name)
-                finished_model = FM.Finished_Models()
-                finished_model.get_model(
-                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
-                models.append(finished_model)
-                i += 1
-            else:
-                continue
-
-        #print(models)
-
-        results = []
-        for model in models:
-            results.append(model.get_acc_results(topn, questions))
-
-        #print(results)
-        return results
-
-
     def position_based_tie_handling_majority_vote(self, questions, topn = 1, number_of_models=10):
         guesses = self.get_multiple_results(questions, number_of_models=number_of_models, topn=topn)
         reals = self.get_expected_acc_results(questions)
@@ -325,51 +288,11 @@ class boot_strap_aggregator:
                 wrong.append(wrong_message)
                 number_of_wrong += 1
 
-        print('Correct ' + str(number_of_correct))
+        #print('Correct ' + str(number_of_correct))
         print(correct)
-        print('Wrong ' + str(number_of_wrong))
+        #print('Wrong ' + str(number_of_wrong))
         print(wrong)
         return number_of_correct, number_of_wrong
-
-    def position_counter(self, guess_list):
-        # print('guess')
-        #print(guess_list)
-        combined_guess_list = []
-        # print(guess_list[0])
-
-        # if guess_list is None:
-        # return [[None]]
-        for i in range(0, len(guess_list)):
-            if guess_list[i] is not None:
-                guess, value = guess_list[i]
-                not_found = True
-                for i in range(0, len(combined_guess_list)):
-                    word, old_value, number_of_appearances = combined_guess_list[i]
-                    if guess == word:
-                        combined_guess_list[i] = [guess, value + old_value, number_of_appearances + 1]
-                        not_found = False
-
-                if not_found:
-                    combined_guess_list.append((guess, value, 1))
-            else:
-                # print('None')
-                combined_guess_list.append((None, 0, 0))
-                # print(combined_guess_list)
-
-        sorted_combined_guess_list = sorted(combined_guess_list, key=lambda x: x[2], reverse=True)
-        #print(sorted_combined_guess_list)
-        max_number_of_appearance = []
-        for i in range(0, len(sorted_combined_guess_list)):
-            #print(sorted_combined_guess_list[i])
-            if sorted_combined_guess_list[0][2] == sorted_combined_guess_list[i][2]:
-                max_number_of_appearance.append((sorted_combined_guess_list[i][0], sorted_combined_guess_list[i][1]))
-        sorted_combined_guess_list = sorted(max_number_of_appearance, key=lambda x: x[1], reverse=False)
-        #print(sorted_combined_guess_list)
-        return sorted_combined_guess_list
-
-
-
-
 
     def tie_handling_majority_vote(self, questions, topn = 1, number_of_models=10):
         guesses = self.get_multiple_tie_handling_results(questions, number_of_models=number_of_models, topn=topn)
@@ -435,6 +358,7 @@ class boot_strap_aggregator:
         #print(wrong)
         return number_of_correct, number_of_wrong
 
+
     def weighted_counter(self, guess_list):
         #print('guess')
         #print(guess_list)
@@ -464,10 +388,6 @@ class boot_strap_aggregator:
         #print(sorted_combined_guess_list)
         return sorted_combined_guess_list
 
-
-
-
-
     def get_multiple_tie_handling_results(self, questions, number_of_models, topn):
         name_array = []
         not_wanted = ['npy', 'Readme.md']
@@ -496,13 +416,6 @@ class boot_strap_aggregator:
         #print(results)
         return results
 
-
-
-
-
-
-
-
     def get_expected_acc_results(self, questions):
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         questions = dir_path + '/Code/TestingSet/' + questions
@@ -529,13 +442,77 @@ class boot_strap_aggregator:
     def get_acc_results(self, model, questions):
         return model.get_acc_results(questions)
 
+    def position_counter(self, guess_list):
+        # print('guess')
+        #print(guess_list)
+        combined_guess_list = []
+        # print(guess_list[0])
 
+        # if guess_list is None:
+        # return [[None]]
+        for i in range(0, len(guess_list)):
+            if guess_list[i] is not None:
+                guess, value = guess_list[i]
+                not_found = True
+                for i in range(0, len(combined_guess_list)):
+                    word, old_value, number_of_appearances = combined_guess_list[i]
+                    if guess == word:
+                        combined_guess_list[i] = [guess, value + old_value, number_of_appearances + 1]
+                        not_found = False
 
+                if not_found:
+                    combined_guess_list.append((guess, value, 1))
+            else:
+                # print('None')
+                combined_guess_list.append((None, 0, 0))
+                # print(combined_guess_list)
 
+        sorted_combined_guess_list = sorted(combined_guess_list, key=lambda x: x[2], reverse=True)
+        #print(sorted_combined_guess_list)
+        max_number_of_appearance = []
+        for i in range(0, len(sorted_combined_guess_list)):
+            #print(sorted_combined_guess_list[i])
+            if sorted_combined_guess_list[0][2] == sorted_combined_guess_list[i][2]:
+                max_number_of_appearance.append((sorted_combined_guess_list[i][0], sorted_combined_guess_list[i][1]))
+        sorted_combined_guess_list = sorted(max_number_of_appearance, key=lambda x: x[1], reverse=False)
+        #print(sorted_combined_guess_list)
+        return sorted_combined_guess_list
 
+    def get_multiple_results(self, questions, topn, number_of_models=5):
+        name_array = []
+        not_wanted = ['npy', 'Readme.md']
+        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
+                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+        for file_index in range(0, len(onlyfiles)):
+            if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1] in onlyfiles[file_index]):
+                continue
+            else:
+                name_array.append(onlyfiles[file_index])
 
+        # print(name_array)
+        models = []
+        random.shuffle(name_array)
+        # print(name_array)
+        i = 0
+        for name in name_array:
+            if number_of_models > i:
+                print(name)
+                finished_model = FM.Finished_Models()
+                finished_model.get_model(
+                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+                models.append(finished_model)
+                i += 1
+            else:
+                continue
 
+        # print(models)
 
+        results = []
+        for model in models:
+            results.append(model.get_acc_results(topn, questions))
+
+        # print(results)
+        return results
 
     def accuracy(self, questions, case_insensitive=True, predictor_method=0, fast_process=True, number_of_models=20):
         correct = 0
