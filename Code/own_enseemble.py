@@ -424,7 +424,7 @@ class own_enseemble:
                 combined_oov += g[1]
             weighted_guess = 0
             for g in guess:
-                weighted_guess += g[0] * (g[1] / combined_oov)
+                weighted_guess += g[0] * (g[1] / combined_oov) #TODO fix smallest value means most
 
             average_guesses.append(weighted_guess)
 
@@ -462,7 +462,7 @@ class own_enseemble:
                 combined_oov += g[1]
             weighted_guess = 0
             for g in guess:
-                weighted_guess += g[0] * (g[1] / combined_oov)
+                weighted_guess += g[0] * (g[1] / combined_oov) #TODO fix smallest value means most
 
             average_guesses.append(weighted_guess)
 
