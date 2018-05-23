@@ -407,15 +407,17 @@ class own_enseemble:
     def weight_based_on_oov_human_similarity_majority_vote(self, questions, number_of_models):
         reals = self.get_human_similarities_results(questions)
         guesses = self.get_model_similarities_results(questions, number_of_models)
-
+        #print(guesses)
+        guesses = sorted(guesses, key=lambda x: x[1], reverse=True) # changed
+        #print(guesses)
         combined_guesses = []
         for j in range(0, len(guesses[0][0])):
             combined_guess = []
             for i in range(0, number_of_models):
-                combined_guess.append((guesses[i][0][j], guesses[i][1]))
-            print(combined_guess)
+                combined_guess.append((guesses[i][0][j], i + 1)) # changed
+            #print(combined_guess)
             combined_guesses.append(combined_guess)
-            # print(combined_guesses)
+        #print(combined_guesses)
 
         average_guesses = []
         for guess in combined_guesses:
@@ -424,7 +426,7 @@ class own_enseemble:
                 combined_oov += g[1]
             weighted_guess = 0
             for g in guess:
-                weighted_guess += g[0] * (g[1] / combined_oov) #TODO fix smallest value means most
+                weighted_guess += g[0] * (g[1] / combined_oov)
 
             average_guesses.append(weighted_guess)
 
@@ -441,13 +443,15 @@ class own_enseemble:
         reals = self.get_human_similarities_results(questions)
         guesses = self.get_model_similarities_results(questions, number_of_models)
 
+        guesses = sorted(guesses, key=lambda x: x[1], reverse=True)
+
         combined_guesses = []
         for j in range(0, len(guesses[0][0])):
             combined_guess = []
             for i in range(0, number_of_models):
                 if guesses[i][0][j] == 0.0:
                     continue
-                combined_guess.append((guesses[i][0][j], guesses[i][1]))
+                combined_guess.append((guesses[i][0][j], i + 1))
             print(combined_guess)
             combined_guesses.append(combined_guess)
             # print(combined_guesses)
@@ -462,7 +466,7 @@ class own_enseemble:
                 combined_oov += g[1]
             weighted_guess = 0
             for g in guess:
-                weighted_guess += g[0] * (g[1] / combined_oov) #TODO fix smallest value means most
+                weighted_guess += g[0] * (g[1] / combined_oov)
 
             average_guesses.append(weighted_guess)
 
@@ -557,4 +561,4 @@ print(enseemble_test.get_human_similarities_results('wordsim353.tsv'))
 #print(enseemble_test.naive_human_similarity_majority_vote('wordsim353.tsv', 10))
 #print(enseemble_test.ignore_oov_human_similarity_majority_vote('wordsim353.tsv', 10))
 print(enseemble_test.weight_based_on_oov_human_similarity_majority_vote('wordsim353.tsv', 10))
-print(enseemble_test.weight_based_on_total_oov_ignore_oov_human_similarity_majority_vote('wordsim353.tsv', 10))
+#print(enseemble_test.weight_based_on_total_oov_ignore_oov_human_similarity_majority_vote('wordsim353.tsv', 10))
