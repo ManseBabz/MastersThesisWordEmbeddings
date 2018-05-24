@@ -405,7 +405,7 @@ class boot_strap_aggregator:
         i = 0
         for name in name_array:
             if number_of_models > i:
-                print(name)
+                #print(name)
                 finished_model = FM.Finished_Models()
                 finished_model.get_model(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
                 results.append(finished_model.get_acc_results_extra(topn, questions))
@@ -496,7 +496,7 @@ class boot_strap_aggregator:
         i = 0
         for name in name_array:
             if number_of_models > i:
-                print(name)
+                #print(name)
                 finished_model = FM.Finished_Models()
                 finished_model.get_model(
                     os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
@@ -583,40 +583,244 @@ class boot_strap_aggregator:
                 correct, wrong = boot_strap_aggregator.position_based_tie_handling_majority_vote(self, questions=questions, topn=10, number_of_models=number_of_models)
                 return correct, wrong
 
-    def evaluate_word_pairs(self, pairs, delimiter='\t', restrict_vocab=300000,
-                            case_insensitive=False, dummy4unknown=False, similarity_model_type="0"):
+    def naive_human_similarity_majority_vote(self, questions, number_of_models):
+        reals = self.get_human_similarities_results(questions)
+        guesses = self.get_model_similarities_results(questions, number_of_models)
 
-        similarity_gold = []
-        similarity_model = []
-        for line_no, line in enumerate(utils.smart_open(pairs)):
+        combined_guesses = []
+        for j in range(0, len(guesses[0][0])):
+            combined_guess = []
+            for i in range(0, number_of_models):
+                combined_guess.append(guesses[i][0][j])
+            # print(combined_guess)
+            combined_guesses.append(combined_guess)
+        # print(combined_guesses)
+
+        average_guesses = []
+        for guess in combined_guesses:
+            average_guess = sum(guess) / len(guess)
+            average_guesses.append(average_guess)
+
+        print(len(reals))
+        print(reals)
+        print(len(average_guesses))
+        print(average_guesses)
+
+        spearman_result = stats.spearmanr(reals, average_guesses)
+        pearson_result = stats.pearsonr(reals, average_guesses)
+        return spearman_result, pearson_result
+
+    def ignore_oov_human_similarity_majority_vote(self, questions, number_of_models):
+        reals = self.get_human_similarities_results(questions)
+        guesses = self.get_model_similarities_results(questions, number_of_models)
+
+        combined_guesses = []
+        for j in range(0, len(guesses[0][0])):
+            combined_guess = []
+            for i in range(0, number_of_models):
+                if guesses[i][0][j] == 0.0:
+                    continue
+                combined_guess.append(guesses[i][0][j])
+            # print(combined_guess)
+            combined_guesses.append(combined_guess)
+        # print(combined_guesses)
+
+        average_guesses = []
+        for guess in combined_guesses:
+            print(len(guess))
+            if len(guess) == 0:
+                average_guesses.append(0.0)
+            else:
+                average_guess = sum(guess) / len(guess)
+                average_guesses.append(average_guess)
+
+        print(len(reals))
+        print(reals)
+        print(len(average_guesses))
+        print(average_guesses)
+
+        spearman_result = stats.spearmanr(reals, average_guesses)
+        pearson_result = stats.pearsonr(reals, average_guesses)
+        return spearman_result, pearson_result
+
+    def weight_based_on_oov_human_similarity_majority_vote(self, questions, number_of_models):
+        reals = self.get_human_similarities_results(questions)
+        guesses = self.get_model_similarities_results(questions, number_of_models)
+        # print(guesses)
+        guesses = sorted(guesses, key=lambda x: x[1], reverse=True)  # changed
+        # print(guesses)
+        combined_guesses = []
+        for j in range(0, len(guesses[0][0])):
+            combined_guess = []
+            for i in range(0, number_of_models):
+                combined_guess.append((guesses[i][0][j], i + 1))  # changed
+            # print(combined_guess)
+            combined_guesses.append(combined_guess)
+        # print(combined_guesses)
+
+        average_guesses = []
+        for guess in combined_guesses:
+            combined_oov = 0
+            for g in guess:
+                combined_oov += g[1]
+            weighted_guess = 0
+            for g in guess:
+                weighted_guess += g[0] * (g[1] / combined_oov)
+
+            average_guesses.append(weighted_guess)
+
+        print(len(reals))
+        print(reals)
+        print(len(average_guesses))
+        print(average_guesses)
+
+        spearman_result = stats.spearmanr(reals, average_guesses)
+        pearson_result = stats.pearsonr(reals, average_guesses)
+        return spearman_result, pearson_result
+
+    def weight_based_on_total_oov_ignore_oov_human_similarity_majority_vote(self, questions, number_of_models):
+        reals = self.get_human_similarities_results(questions)
+        guesses = self.get_model_similarities_results(questions, number_of_models)
+
+        guesses = sorted(guesses, key=lambda x: x[1], reverse=True)
+
+        combined_guesses = []
+        for j in range(0, len(guesses[0][0])):
+            combined_guess = []
+            for i in range(0, number_of_models):
+                if guesses[i][0][j] == 0.0:
+                    continue
+                combined_guess.append((guesses[i][0][j], i + 1))
+            print(combined_guess)
+            combined_guesses.append(combined_guess)
+            # print(combined_guesses)
+
+        average_guesses = []
+        for guess in combined_guesses:
+            if len(guess) == 0:
+                average_guesses.append(0.0)
+                continue
+            combined_oov = 0
+            for g in guess:
+                combined_oov += g[1]
+            weighted_guess = 0
+            for g in guess:
+                weighted_guess += g[0] * (g[1] / combined_oov)
+
+            average_guesses.append(weighted_guess)
+
+        print(len(reals))
+        print(reals)
+        print(len(average_guesses))
+        print(average_guesses)
+
+        spearman_result = stats.spearmanr(reals, average_guesses)
+        pearson_result = stats.pearsonr(reals, average_guesses)
+        return spearman_result, pearson_result
+
+
+    def get_human_similarities_results(self, test_set):
+        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        test_set = dir_path + '/Code/TestingSet/' + test_set
+        results = []
+        for line_no, line in enumerate(utils.smart_open(test_set)):
             line = utils.to_unicode(line)
             if line.startswith('#'):
                 # May be a comment
                 continue
             else:
                 try:
-                    if case_insensitive:
-                        a, b, sim = [word.lower() for word in line.split(delimiter)]
-                    else:
-                        a, b, sim = [word for word in line.split(delimiter)]
+
+                    a, b, sim = [word.upper() for word in line.split('\t')]
+
                     sim = float(sim)
                 except (ValueError, TypeError):
-                    #logger.info('skipping invalid line #%d in %s', line_no, pairs)
+                    logger.info('skipping invalid line #%d in %s', line_no, test_set)
                     continue
 
-                similarity_gold.append(sim)  # Similarity from the dataset
-                if(similarity_model_type == 0):
-                    similarity_model.append(boot_strap_aggregator.similarity_avg_proberbility(self, a, b))  # Similarity from the model
-                elif(similarity_model_type == 1):
-                    if(self.weight_list == []):
-                        raise ValueError("No weights specified for ensamble model")
-                    else:
-                        similarity_model.append(boot_strap_aggregator.similarity_weighted_avg_proberbility(self, a, b))
-                else:
-                    raise ValueError("incorrect argument type for predictor_method")
+                results.append(sim)  # Similarity from the dataset
+        return results
 
-        spearman = stats.spearmanr(similarity_gold, similarity_model)
-        pearson = stats.pearsonr(similarity_gold, similarity_model)
+    def get_model_similarities_results(self, questions, number_of_models):
+        name_array = []
+        not_wanted = ['npy', 'Readme.md']
+        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
+                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+        for file_index in range(0, len(onlyfiles)):
+            if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1] in onlyfiles[file_index]):
+                continue
+            else:
+                name_array.append(onlyfiles[file_index])
+
+        # print(name_array)
+        random.shuffle(name_array)
+        results = []
+        i = 0
+        for name in name_array:
+            if number_of_models > i:
+                print(name)
+                finished_model = FM.Finished_Models()
+                finished_model.get_model(
+                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+                results.append(finished_model.model_similarity_results(questions))
+                i += 1
+            else:
+                continue
+
+        # print(results)
+        return results
+
+
+    def evaluate_word_pairs(self, pairs, number_of_models=10,delimiter='\t', restrict_vocab=300000,
+                            case_insensitive=False, dummy4unknown=False, similarity_model_type="0", fast = True):
+        if fast:
+            if similarity_model_type == 0:
+                return boot_strap_aggregator.naive_human_similarity_majority_vote(self, questions=pairs, number_of_models=number_of_models)
+            elif similarity_model_type == 1:
+                return boot_strap_aggregator.ignore_oov_human_similarity_majority_vote(self, questions=pairs,
+                                                                                  number_of_models=number_of_models)
+            elif similarity_model_type == 2:
+                return boot_strap_aggregator.weight_based_on_oov_human_similarity_majority_vote(self, questions=pairs,
+                                                                                       number_of_models=number_of_models)
+            elif similarity_model_type == 3:
+                return boot_strap_aggregator.weight_based_on_total_oov_ignore_oov_human_similarity_majority_vote(self, questions=pairs,
+                                                                                                number_of_models=number_of_models)
+            else:
+                raise ValueError("incorrect argument type for predictor_method")
+
+
+        else:
+            similarity_gold = []
+            similarity_model = []
+            for line_no, line in enumerate(utils.smart_open(pairs)):
+                line = utils.to_unicode(line)
+                if line.startswith('#'):
+                    # May be a comment
+                    continue
+                else:
+                    try:
+                        if case_insensitive:
+                            a, b, sim = [word.lower() for word in line.split(delimiter)]
+                        else:
+                            a, b, sim = [word for word in line.split(delimiter)]
+                        sim = float(sim)
+                    except (ValueError, TypeError):
+                        #logger.info('skipping invalid line #%d in %s', line_no, pairs)
+                        continue
+
+                    similarity_gold.append(sim)  # Similarity from the dataset
+                    if(similarity_model_type == 0):
+                        similarity_model.append(boot_strap_aggregator.similarity_avg_proberbility(self, a, b))  # Similarity from the model
+                    elif(similarity_model_type == 1):
+                        if(self.weight_list == []):
+                            raise ValueError("No weights specified for ensamble model")
+                        else:
+                            similarity_model.append(boot_strap_aggregator.similarity_weighted_avg_proberbility(self, a, b))
+                    else:
+                        raise ValueError("incorrect argument type for predictor_method")
+
+            spearman = stats.spearmanr(similarity_gold, similarity_model)
+            pearson = stats.pearsonr(similarity_gold, similarity_model)
 
 
         #logger.debug('Pearson correlation coefficient against %s: %f with p-value %f', pairs, pearson[0], pearson[1])
