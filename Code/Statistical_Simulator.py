@@ -112,7 +112,7 @@ def generate_statistics_naive_human_similarity(startingpoint = 5, endpoint = 50,
             ensamble_model = BS.boot_strap_aggregator()
             dir_path = "wordsim353.tsv"
             spearman_result, pearson_result = ensamble_model.evaluate_word_pairs(dir_path, number_of_models=i, similarity_model_type=0)
-            res = [[i, topn, spearman_result, pearson_result]]
+            res = [[i, topn, spearman_result[0], spearman_result[1], pearson_result[0], pearson_result[1]]]
             print(res)
             results.append(res)
             np.savetxt(f, res, delimiter=',')
@@ -128,8 +128,7 @@ def humsim_experiment1(startingpoint=5, endpoint=160, skips=5, iterations=5, top
         generate_statistics_naive_human_similarity(startingpoint=startingpoint,
                                                                 endpoint=random.randint(start + 1, endpoint),
                                                                 skips=random.randint(1, skips),
-                                                                iterations=random.randint(1, iterations),
-                                                                topn=random.randint(1, topn))
+                                                                iterations=random.randint(1, iterations))
 
 
 def generate_statistics_ignore_oov_human_similarity(startingpoint = 5, endpoint = 50, skips = 5, iterations = 5, topn=10):
@@ -144,7 +143,7 @@ def generate_statistics_ignore_oov_human_similarity(startingpoint = 5, endpoint 
             ensamble_model = BS.boot_strap_aggregator()
             dir_path = "wordsim353.tsv"
             spearman_result, pearson_result = ensamble_model.evaluate_word_pairs(dir_path, number_of_models=i, similarity_model_type=1)
-            res = [[i, topn, spearman_result, pearson_result]]
+            res = [[i, topn, spearman_result[0], spearman_result[1], pearson_result[0], pearson_result[1]]]
             print(res)
             results.append(res)
             np.savetxt(f, res, delimiter=',')
@@ -160,8 +159,7 @@ def humsim_experiment2(startingpoint=5, endpoint=160, skips=5, iterations=5, top
         generate_statistics_ignore_oov_human_similarity(startingpoint=startingpoint,
                                                                 endpoint=random.randint(start + 1, endpoint),
                                                                 skips=random.randint(1, skips),
-                                                                iterations=random.randint(1, iterations),
-                                                                topn=random.randint(1, topn))
+                                                                iterations=random.randint(1, iterations))
 
 
 def generate_statistics_weight_based_on_oov_human_similarity(startingpoint = 5, endpoint = 50, skips = 5, iterations = 5, topn=10):
@@ -176,7 +174,7 @@ def generate_statistics_weight_based_on_oov_human_similarity(startingpoint = 5, 
             ensamble_model = BS.boot_strap_aggregator()
             dir_path = "wordsim353.tsv"
             spearman_result, pearson_result = ensamble_model.evaluate_word_pairs(dir_path, number_of_models=i, similarity_model_type=2)
-            res = [[i, topn, spearman_result, pearson_result]]
+            res = [[i, topn, spearman_result[0], spearman_result[1], pearson_result[0], pearson_result[1]]]
             print(res)
             results.append(res)
             np.savetxt(f, res, delimiter=',')
@@ -192,8 +190,7 @@ def humsim_experiment3(startingpoint=5, endpoint=160, skips=5, iterations=5, top
         generate_statistics_weight_based_on_oov_human_similarity(startingpoint=startingpoint,
                                                                 endpoint=random.randint(start + 1, endpoint),
                                                                 skips=random.randint(1, skips),
-                                                                iterations=random.randint(1, iterations),
-                                                                topn=random.randint(1, topn))
+                                                                iterations=random.randint(1, iterations))
 
 def generate_statistics_weight_based_on_total_oov_ignore_oov_human_similarity(startingpoint = 5, endpoint = 50, skips = 5, iterations = 5, topn=10):
     results = []
@@ -207,7 +204,7 @@ def generate_statistics_weight_based_on_total_oov_ignore_oov_human_similarity(st
             ensamble_model = BS.boot_strap_aggregator()
             dir_path = "wordsim353.tsv"
             spearman_result, pearson_result = ensamble_model.evaluate_word_pairs(dir_path, number_of_models=i, similarity_model_type=3)
-            res = [[i, topn, spearman_result, pearson_result]]
+            res = [[i, topn, spearman_result[0], spearman_result[1], pearson_result[0], pearson_result[1]]]
             print(res)
             results.append(res)
             np.savetxt(f, res, delimiter=',')
@@ -223,8 +220,7 @@ def humsim_experiment4(startingpoint=5, endpoint=160, skips=5, iterations=5, top
         generate_statistics_weight_based_on_total_oov_ignore_oov_human_similarity(startingpoint=startingpoint,
                                                                 endpoint=random.randint(start + 1, endpoint),
                                                                 skips=random.randint(1, skips),
-                                                                iterations=random.randint(1, iterations),
-                                                                topn=random.randint(1, topn))
+                                                                iterations=random.randint(1, iterations))
 
 
-if __name__ == "__main__": acc_experiment3(startingpoint=25)
+if __name__ == "__main__": humsim_experiment1()
