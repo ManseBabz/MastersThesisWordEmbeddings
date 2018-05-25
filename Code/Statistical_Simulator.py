@@ -112,6 +112,7 @@ def generate_statistics_naive_human_similarity(startingpoint = 5, endpoint = 50,
             ensamble_model = BS.boot_strap_aggregator()
             dir_path = "wordsim353.tsv"
             spearman_result, pearson_result = ensamble_model.evaluate_word_pairs(dir_path, number_of_models=i, similarity_model_type=0)
+            print(spearman_result)
             res = [[i, topn, spearman_result[0], spearman_result[1], pearson_result[0], pearson_result[1]]]
             print(res)
             results.append(res)
@@ -222,5 +223,39 @@ def humsim_experiment4(startingpoint=5, endpoint=160, skips=5, iterations=5, top
                                                                 skips=random.randint(1, skips),
                                                                 iterations=random.randint(1, iterations))
 
+def all_hum_sim(startingpoint=5, endpoint=100, skips=5, iterations=5):
+    while True:
+        generate_statistics_weight_based_on_total_oov_ignore_oov_human_similarity(startingpoint=startingpoint,
+                                                                endpoint=endpoint,
+                                                                skips=skips,
+                                                                iterations=iterations)
+        generate_statistics_weight_based_on_oov_human_similarity(startingpoint=startingpoint,
+                                                                 endpoint=endpoint,
+                                                                 skips=skips,
+                                                                 iterations=iterations)
+        generate_statistics_ignore_oov_human_similarity(startingpoint=startingpoint,
+                                                        endpoint=endpoint,
+                                                        skips=random.randint(1, skips),
+                                                        iterations=iterations)
+        generate_statistics_naive_human_similarity(startingpoint=startingpoint,
+                                                   endpoint=endpoint,
+                                                   skips=skips,
+                                                   iterations=iterations)
 
-if __name__ == "__main__": humsim_experiment1()
+        startingpoint = startingpoint+int(skips/2)
+        endpoint = endpoint+int(skips/2)
+
+def model_counter():
+    name_array = []
+    not_wanted = ['npy', 'Readme.md']
+    onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
+                 isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+    for file_index in range(0, len(onlyfiles)):
+        if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1] in onlyfiles[file_index]):
+            continue
+        else:
+            name_array.append(onlyfiles[file_index])
+    print(len(name_array))
+    return len(name_array)
+
+if __name__ == "__main__": all_hum_sim(startingpoint=100, endpoint=model_counter(), skips=5, iterations=5)
