@@ -62,9 +62,9 @@ def t_value(r, se):
 def t_test(t_mesured, n):
     t_val = t.ppf([0.95], (n-2))
     if(t_mesured > t_val):
-        return True
+        return True, t_val
     else:
-        return False
+        return False, t_val
 
 
 
@@ -72,8 +72,6 @@ def plot_acc_plot(data_file_name, save_file_name):
     file_parth = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'/'+data_file_name
     data = np.genfromtxt(file_parth, delimiter=",", dtype=None)
     ensamble_count_array, acc_results_array = file_acc_unpacker(data)
-    print(ensamble_count_array)
-    print(acc_results_array)
     plt.scatter(ensamble_count_array, acc_results_array)
     plt.ylabel('Accuracy')
     plt.xlabel('#Models in ensamble')
@@ -88,14 +86,18 @@ def plot_acc_plot(data_file_name, save_file_name):
     r = r_mesurement(ensamble_count_array, acc_results_array)
     se = standard_error(r, len(ensamble_count_array))
     t = t_value(r, se)
-    rejected = t_test(t, len(ensamble_count_array))
-    plt.text(spearman_result)
-    print(spearman_result)
-    print(pearson_correlation)
-    print(r)
-    print(se)
-    print(t)
-    print('Is rejected: ' + str(rejected))
+    rejected, t_stats = t_test(t, len(ensamble_count_array))
+
+    text_file = save_file_name+'_stats_properties'
+    text_file = open('statsData/'+text_file+'.txt', "w")
+    text_file.write("spearman correlation result: "+ str(spearman_result))
+    text_file.write("pearson correlation result: " + str(pearson_correlation))
+    text_file.write("r value: " + str(r))
+    text_file.write("Standard errort: " + str(se))
+    text_file.write("t-value: " + str(pearson_correlation))
+    text_file.write("t-statistics: " + str(t_stats))
+    text_file.write("Is h0 rejected?: " + str(rejected))
+    text_file.close()
     plt.savefig('Plots/'+save_file_name)
     plt.close()
 
@@ -105,7 +107,6 @@ def plot_hum_sim_plot(data_file_name, save_file_name):
     file_parth = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/' + data_file_name
     data = np.genfromtxt(file_parth, delimiter=",", dtype=None)
     ensamble_count_array, spearman_correlation_value_array, pearson_correlation_value_array = file_hum_sim_unpacker(data)
-    plt.subplot(121)
     plt.scatter(ensamble_count_array, spearman_correlation_value_array)
     plt.ylabel('Spearman correlation')
     plt.xlabel('#Models in ensamble')
@@ -120,16 +121,19 @@ def plot_hum_sim_plot(data_file_name, save_file_name):
     r = r_mesurement(ensamble_count_array, spearman_correlation_value_array)
     se = standard_error(r, len(ensamble_count_array))
     t = t_value(r, se)
-    rejected = t_test(t, len(ensamble_count_array))
-    print(spearman_result)
-    print(pearson_correlation)
-    print(r)
-    print(se)
-    print(t)
-    print('Is rejected: ' + str(rejected))
-
-
-    plt.subplot(122)
+    rejected, t_stats = t_test(t, len(ensamble_count_array))
+    text_file = save_file_name + '_stats_properties_spearman_results'
+    text_file = open('statsData/' + text_file + '.txt', "w")
+    text_file.write("spearman correlation result: " + str(spearman_result))
+    text_file.write("pearson correlation result: " + str(pearson_correlation))
+    text_file.write("r value: " + str(r))
+    text_file.write("Standard errort: " + str(se))
+    text_file.write("t-value: " + str(pearson_correlation))
+    text_file.write("t-statistics: " + str(t_stats))
+    text_file.write("Is h0 rejected?: " + str(rejected))
+    text_file.close()
+    plt.savefig('Plots/' + save_file_name+'_spearman')
+    plt.close()
     plt.scatter(ensamble_count_array, pearson_correlation_value_array)
     plt.ylabel('Pearson correlation')
     plt.xlabel('#Models in ensamble')
@@ -146,27 +150,172 @@ def plot_hum_sim_plot(data_file_name, save_file_name):
     r = r_mesurement(ensamble_count_array, pearson_correlation_value_array)
     se = standard_error(r, len(ensamble_count_array))
     t = t_value(r, se)
-    rejected = t_test(t, len(ensamble_count_array))
-    print(spearman_result)
-    print(pearson_correlation)
-    print(r)
-    print(se)
-    print(t)
-    print('Is rejected: ' + str(rejected))
-    plt.subplots_adjust(left=0.2, wspace=0.8, top=0.8)
-    plt.savefig('Plots/' + save_file_name)
+    rejected, t_stats = t_test(t, len(ensamble_count_array))
+    text_file = save_file_name + '_stats_properties_pearson_results'
+    text_file = open('statsData/' + text_file + '.txt', "w")
+    text_file.write("spearman correlation result: " + str(spearman_result))
+    text_file.write("pearson correlation result: " + str(pearson_correlation))
+    text_file.write("r value: " + str(r))
+    text_file.write("Standard errort: " + str(se))
+    text_file.write("t-value: " + str(pearson_correlation))
+    text_file.write("t-statistics: " + str(t_stats))
+    text_file.write("Is h0 rejected?: " + str(rejected))
+    text_file.close()
+
+    plt.savefig('Plots/' + save_file_name+'_pearson')
     plt.close()
+
+def slope_eval_plotter_acc(list_of_files, color_list, name, with_datapoints=False):
+    if(len(list_of_files)==len(color_list)):
+        for i in range(0, len(list_of_files)):
+            file_parth = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/' + list_of_files[i]
+            data = np.genfromtxt(file_parth, delimiter=",", dtype=None)
+            ensamble_count_array, acc_results_array = file_acc_unpacker(data)
+            if (with_datapoints):
+                plt.scatter(ensamble_count_array, acc_results_array, c=color_list[i])
+            plt.ylabel('Accuracy')
+            plt.xlabel('#Models in ensamble')
+            plt.plot(np.unique(ensamble_count_array),
+                     np.poly1d(np.polyfit(ensamble_count_array, acc_results_array, 1))(np.unique(ensamble_count_array)),
+                     color=color_list[i])
+        plt.savefig('Plots/' + name + '_pearson')
+        plt.close()
+    else:
+        raise ValueError('Inequal amount of colors and files')
+
+def slope_eval_plotter_humsim_spearman(list_of_files, color_list, name, with_datapoints=False):
+    if(len(list_of_files)==len(color_list)):
+        for i in range(0, len(list_of_files)):
+            file_parth = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/' + list_of_files[i]
+            data = np.genfromtxt(file_parth, delimiter=",", dtype=None)
+            ensamble_count_array, spearman_correlation_value_array, pearson_correlation_value_array = file_hum_sim_unpacker(
+                data)
+            if(with_datapoints):
+                plt.scatter(ensamble_count_array, spearman_correlation_value_array, c = color_list[i])
+            plt.ylabel('Spearman correlation')
+            plt.xlabel('#Models in ensamble')
+            plt.plot(np.unique(ensamble_count_array),
+                     np.poly1d(np.polyfit(ensamble_count_array, spearman_correlation_value_array, 1))(
+                         np.unique(ensamble_count_array)),
+                     color=color_list[i])
+
+        plt.savefig('Plots/' + name)
+        plt.close()
+    else:
+        raise ValueError('Inequal amount of colors and files')
+
+def slope_eval_plotter_humsim_pearson(list_of_files, color_list, name, with_datapoints=False):
+    if (len(list_of_files) == len(color_list)):
+        for i in range(0, len(list_of_files)):
+            file_parth = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/' + list_of_files[i]
+            data = np.genfromtxt(file_parth, delimiter=",", dtype=None)
+            ensamble_count_array, spearman_correlation_value_array, pearson_correlation_value_array = file_hum_sim_unpacker(
+                data)
+            if (with_datapoints):
+                plt.scatter(ensamble_count_array, pearson_correlation_value_array, c=color_list[i])
+            plt.ylabel('Spearman correlation')
+            plt.xlabel('#Models in ensamble')
+            plt.plot(np.unique(ensamble_count_array),
+                     np.poly1d(np.polyfit(ensamble_count_array, pearson_correlation_value_array, 1))(
+                         np.unique(ensamble_count_array)),
+                     color=color_list[i])
+
+        plt.savefig('Plots/' + name)
+        plt.close()
+    else:
+        raise ValueError('Inequal amount of colors and files')
 
 
 
 def plot_all_hardcoded():
-    plot_acc_plot('Ensamble_test_results.csv', 'Ensamble_test_results')
-    plot_acc_plot('tie_breaking_weighted_majority_vote.csv', 'tie_breaking_weighted_majority_vote')
-    plot_acc_plot('weighted_majority_vote_Ensamble_test_results.csv', 'weighted_majority_vote_Ensamble_test_results')
-    plot_hum_sim_plot('ignore_oov_human_similarity_stats.csv', 'ignore_oov_human_similarity_stats')
-    plot_hum_sim_plot('naive_human_similarity_stats.csv', 'naive_human_similarity_stats')
-    plot_hum_sim_plot('weight_based_on_oov_human_similarity_stats.csv', 'weight_based_on_oov_human_similarity_stats')
-    plot_hum_sim_plot('weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv', 'weight_based_on_total_oov_ignore_oov_human_similarity_stats')
+    #English
+    plot_acc_plot('Ensamble_test_results.csv', 'Ensamble_test_results_English')
+    plot_acc_plot('tie_breaking_weighted_majority_vote.csv', 'tie_breaking_weighted_majority_vote_English')
+    plot_acc_plot('weighted_majority_vote_Ensamble_test_results.csv', 'weighted_majority_vote_Ensamble_test_results_English')
+    plot_hum_sim_plot('ignore_oov_human_similarity_stats.csv', 'ignore_oov_human_similarity_stats_English')
+    plot_hum_sim_plot('naive_human_similarity_stats.csv', 'naive_human_similarity_stats_English')
+    plot_hum_sim_plot('weight_based_on_oov_human_similarity_stats.csv', 'weight_based_on_oov_human_similarity_stats_English')
+    plot_hum_sim_plot('weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv', 'weight_based_on_total_oov_ignore_oov_human_similarity_stats_English')
+    slope_eval_plotter_acc(['Ensamble_test_results.csv',
+                           'tie_breaking_weighted_majority_vote.csv',
+                           'weighted_majority_vote_Ensamble_test_results.csv'],
+                          ['red', 'blue', 'green'],
+                          'allSloaps_acc_English')
+    slope_eval_plotter_acc(['Ensamble_test_results.csv',
+                           'tie_breaking_weighted_majority_vote.csv',
+                           'weighted_majority_vote_Ensamble_test_results.csv'],
+                           ['red', 'blue', 'green'],
+                           'allSloaps_acc_English_data', with_datapoints=True)
+    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats.csv',
+                                       'naive_human_similarity_stats.csv',
+                                       'weight_based_on_oov_human_similarity_stats.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv'],
+                                      ['red', 'blue', 'black', 'green'],
+                                      'allSloaps_pearson_English')
+    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats.csv',
+                                       'naive_human_similarity_stats.csv',
+                                       'weight_based_on_oov_human_similarity_stats.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv'],
+                                      ['red', 'blue', 'black', 'green'],
+                                      'allSloaps_pearson_English_data', with_datapoints=True)
+    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats.csv',
+                                       'naive_human_similarity_stats.csv',
+                                       'weight_based_on_oov_human_similarity_stats.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv'],
+                                      ['red', 'blue', 'black', 'green'],
+                                      'allSloaps_pearson_English')
+    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats.csv',
+                                       'naive_human_similarity_stats.csv',
+                                       'weight_based_on_oov_human_similarity_stats.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv'],
+                                      ['red', 'blue', 'black', 'green'],
+                                      'allSloaps_pearson_English_data', with_datapoints=True)
+
+    #Danish
+    plot_acc_plot('Ensamble_test_results_danish.csv', 'Ensamble_test_results_Danish')
+    plot_acc_plot('tie_breaking_weighted_majority_vote_danish.csv', 'tie_breaking_weighted_majority_vote_Danish')
+    plot_acc_plot('weighted_majority_vote_Ensamble_test_results_danish.csv',
+                  'weighted_majority_vote_Ensamble_test_results_Danish')
+    plot_hum_sim_plot('ignore_oov_human_similarity_stats_danish.csv', 'ignore_oov_human_similarity_stats_Danish')
+    plot_hum_sim_plot('naive_human_similarity_stats_danish.csv', 'naive_human_similarity_stats_Danish')
+    plot_hum_sim_plot('weight_based_on_oov_human_similarity_stats_danish.csv',
+                      'weight_based_on_oov_human_similarity_stats_Danish')
+    plot_hum_sim_plot('weight_based_on_total_oov_ignore_oov_human_similarity_stats_danish.csv',
+                      'weight_based_on_total_oov_ignore_oov_human_similarity_stats_Danish')
+    slope_eval_plotter_acc(['Ensamble_test_results.csv',
+                            'tie_breaking_weighted_majority_vote.csv',
+                            'weighted_majority_vote_Ensamble_test_results.csv'],
+                           ['red', 'blue', 'green'],
+                           'allSloaps_acc_Danish')
+    slope_eval_plotter_acc(['Ensamble_test_results.csv',
+                            'tie_breaking_weighted_majority_vote.csv',
+                            'weighted_majority_vote_Ensamble_test_results.csv'],
+                           ['red', 'blue', 'green'],
+                           'allSloaps_acc_Danish_data', with_datapoints=True)
+    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats_danish.csv',
+                                       'naive_human_similarity_stats_danish.csv',
+                                       'weight_based_on_oov_human_similarity_stats_danish.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_danish.csv'],
+                                       ['red', 'blue', 'black', 'green'],
+                                       'allSloaps_pearson_Danish')
+    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats_danish.csv',
+                                       'naive_human_similarity_stats_danish.csv',
+                                       'weight_based_on_oov_human_similarity_stats_danish.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_danish.csv'],
+                                       ['red', 'blue', 'black', 'green'],
+                                       'allSloaps_pearson_Danish_data', with_datapoints=True)
+    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats_danish.csv',
+                                       'naive_human_similarity_stats_danish.csv',
+                                       'weight_based_on_oov_human_similarity_stats_danish.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_danish.csv'],
+                                      ['red', 'blue', 'black', 'green'],
+                                      'allSloaps_pearson_Danish')
+    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats_danish.csv',
+                                       'naive_human_similarity_stats_danish.csv',
+                                       'weight_based_on_oov_human_similarity_stats_danish.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_danish.csv'],
+                                      ['red', 'blue', 'black', 'green'],
+                                      'allSloaps_pearson_Danish_data', with_datapoints=True)
 
 
-if __name__ == "__main__": plot_hum_sim_plot('ignore_oov_human_similarity_stats.csv', 'ignore_oov_human_similarity_stats')
+if __name__ == "__main__": plot_all_hardcoded()
