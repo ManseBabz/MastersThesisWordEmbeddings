@@ -53,6 +53,9 @@ class Finished_Models:
     def similarity(self, word1, word2):
         return self.model.similarity(word1, word2) # 'woman', 'man' -> 0.73723527
 
+    def distance(self, word1, word2):
+        return 1 - self.similarity(word1, word2)
+
     def human_similarity_test(self, testset = 'wordsim353.tsv'):
         logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -68,17 +71,57 @@ class Finished_Models:
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         return self.get_model_similarities(dir_path + '/TestingSet/' + testset)
 
-    def clustering_test(self):
-        mediod = k_mediod.k_mediod("", self.model)
-        clusters, mediods = mediod.find_clusters(2)
-        print(clusters)
-        print(mediods)
+    def clustering(self, testset):
+        clusters, mediods, cost, oov_words = self.get_model_clusters(testset)
+
+        upper_testset = []
+        for test_cluster in testset:
+            upper_test_cluster = []
+            for word in test_cluster:
+                upper_test_cluster.append(word.upper())
+            upper_testset.append(upper_test_cluster)
+
+        correct = []
+        wrong = []
+        for real_cluster in upper_testset:
+            for i in range(0, len(mediods)):
+                if mediods[i] in real_cluster:
+                    for word in clusters[i]:
+                        if word in real_cluster:
+                            correct.append(word)
+                        else:
+                            wrong.append(word)
+        #print(upper_testset)
+        #print(correct)
+        #print(wrong)
+        return correct, len(correct), wrong, len(wrong), cost, oov_words, mediods
+
+    def get_model_clusters(self, testset):
+        mediod = k_mediod.k_mediod(self)
+        clusters, mediods, cost, oov_words = mediod.find_clusters(testset)
+        #print(clusters)
+        #print(mediods)
+        #print(cost)
+        #print(oov_words)
+        return clusters, mediods, cost, oov_words
 
     def get_vocabulary(self):
         return self.model.wv.vocab
 
     def set_vocabulary(self, vocab):
         self.model.wv.vocab = vocab
+
+    def get_upper_vocab(self):
+        ok_vocab = self.get_vocabulary()
+        #print("ok vocab")
+        # print(ok_vocab)
+        new_vocab = [(w, self.model.wv.vocab[w]) for w in ok_vocab]
+        #print("not dict")
+        # new_vocab = [w.upper() for w in ok_vocab]
+        # print(new_vocab)
+        new_vocab = {w.upper(): v for w, v in new_vocab}
+        new_vocab = dict(new_vocab)
+        return new_vocab
 
     def __init__(self):
         self.model = None
