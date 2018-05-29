@@ -6,6 +6,7 @@ from gensim import utils
 from collections import Counter
 import numpy.random as random
 from scipy import stats
+import csv
 
 class own_enseemble:
 
@@ -531,6 +532,301 @@ class own_enseemble:
         # print(results)
         return results
 
+    def naive_clustering_majority_vote(self, test_set, number_of_models):
+        test_set = dir_path + '/Code/TestingSet/' + test_set
+
+        reals = []
+        with open(test_set) as csvfile:
+            test_reader = csv.reader(csvfile, delimiter=',')
+            #initialize first cluster
+            cluster = []
+            for row in test_reader:
+                if not row:
+                    #Add new cluster
+                    reals.append(cluster)
+                    cluster = []
+                else:
+                    cluster.append(''.join(row))
+            # add last cluster
+            reals.append(cluster)
+
+        print(reals)
+
+        guesses = self.get_models_clustering_results(reals, number_of_models)
+
+        print(guesses)
+        #print(guesses[0][0])
+
+        # Assign first cluster to final cluster
+        final_clustering = guesses[0][0]
+
+        for guess in guesses:
+            new_final_clustering = []
+
+            for i in range(0, len(guess[1])):
+                for cluster in final_clustering:
+                    if guess[1][i] in cluster:
+                        clust = list(cluster)
+
+                        for word in guess[0][i]:
+                            if word not in clust:
+                                clust.append(word)
+                        new_final_clustering.append(clust)
+
+
+            for cluster in final_clustering:
+                for clust in new_final_clustering:
+                    if clust[0] in cluster:
+                        for word in clust:
+                            if word not in cluster:
+                                cluster.append(word)
+
+
+
+        final_clustering.sort(key=len)
+
+        correct, wrong = self.get_clustering_result(final_clustering, reals)
+
+        return correct, wrong
+
+    def get_biggest_first_clustering_majority_vote(self, test_set, number_of_models):
+        test_set = dir_path + '/Code/TestingSet/' + test_set
+
+        reals = []
+        with open(test_set) as csvfile:
+            test_reader = csv.reader(csvfile, delimiter=',')
+            #initialize first cluster
+            cluster = []
+            for row in test_reader:
+                if not row:
+                    #Add new cluster
+                    reals.append(cluster)
+                    cluster = []
+                else:
+                    cluster.append(''.join(row))
+            # add last cluster
+            reals.append(cluster)
+        print(reals)
+
+
+        guesses = self.get_models_clustering_results(reals, number_of_models)
+
+        #print(guesses)
+
+        clusters = []
+        mediods = []
+        for guess in guesses:
+            #print(guess)
+            #print(guess[1])
+            clusters.append(guess[0])
+            mediods.append(guess[1])
+        #print(clusters)
+        #print(mediods)
+
+        cluster_with_len = []
+
+        for cluster in clusters:
+            number_of_results = 0
+            for clust in cluster:
+                number_of_results += len(clust)
+            cluster_with_len.append((cluster, number_of_results))
+        #print(cluster_with_len)
+
+        cluster_with_len.sort(key=lambda x: x[1], reverse=True)
+
+        #print(cluster_with_len)
+        #print(cluster_with_len[0][0])
+
+        final_clustering = cluster_with_len[0][0]
+
+        for guess in cluster_with_len:
+            new_final_clustering = []
+            #print(guess)
+            #print(guess[0])
+            for i in range(0, len(guess[0])):
+                for cluster in final_clustering:
+                    if guess[0][i][0] in cluster:
+                        clust = list(cluster)
+
+                        for word in guess[0][i]:
+                            if word not in clust:
+                                clust.append(word)
+                        new_final_clustering.append(clust)
+
+            for cluster in final_clustering:
+                for clust in new_final_clustering:
+                    if clust[0] in cluster:
+                        for word in clust:
+                            if word not in cluster:
+                                cluster.append(word)
+        #print(final_clustering)
+
+        final_clustering.sort(key=len)
+        #print(final_clustering)
+
+        correct, wrong = self.get_clustering_result(final_clustering, reals)
+
+        return correct, wrong
+
+    #Needs final clustering to be sorted on length of clusters.
+    #Does a lot of array handling to only have unique words in the clusters and compare the clusters with the real clusters
+    #by taking the cluster with the most corrects of a cluster class and combines these two clusters, removing this option from the other clusters.
+    # ONLY WORKS WITH 3 CLUSTERS!!!
+    def get_clustering_result(self, final_clustering, reals):
+
+        mediods = []
+        for cluster in final_clustering:
+            mediods.append(cluster[0])
+
+        #print(mediods)
+
+        all_unique_words = []
+        for cluster in final_clustering:
+            for word in cluster:
+                if word not in all_unique_words:
+                    all_unique_words.append(word)
+
+        unique_final_clustering = []
+
+        not_first = False
+
+        #print(all_unique_words)
+        for word in all_unique_words:
+            if word in mediods: #First word should be first mediod
+                if not_first:
+                    unique_final_clustering.append(inner_unique_cluster)
+                inner_unique_cluster = []
+                not_first = True
+            inner_unique_cluster.append(word) #Should not be a problem as first word should be first mediod
+        unique_final_clustering.append(inner_unique_cluster)
+
+        #print("testing")
+        #print(unique_final_clustering)
+
+
+
+        # Select first element of each cluster as element to compare against real cluster containing that element.
+        upper_testset = []
+        for test_cluster in reals:
+            upper_test_cluster = []
+            for word in test_cluster:
+                upper_test_cluster.append(word.upper())
+            upper_testset.append(upper_test_cluster)
+
+
+
+        # Find accuracy of clusters by taking the one with most corrects and remove from each cluster list
+        correct = []
+        wrong = []
+        i = 1
+        for real_cluster in upper_testset:
+            j = 1
+            for final_cluster in unique_final_clustering:
+                inner_correct = []
+                inner_wrong = []
+                for word in final_cluster:
+                    if word in real_cluster:
+                        inner_correct.append(word)
+                    else:
+                        inner_wrong.append(word)
+                correct.append([inner_correct, i, j, len(inner_correct)])
+                wrong.append([inner_wrong, i, j])
+                j += 1
+            i += 1
+
+        #print(correct)
+        correct.sort(key = lambda correct: correct[3], reverse = True)
+        #print(correct)
+
+        true_correct = []
+
+        first_correct = list(correct[0])
+        #print(first_correct)
+
+        new_correct = []
+        for i in range(0, len(correct)):
+            if first_correct[1] != correct[i][1] and first_correct[2] != correct[i][2]:
+                new_correct.append(correct[i])
+
+        correct = list(new_correct)
+        #print(correct)
+
+        second_correct = list(correct[0])
+        #print(second_correct)
+        new_correct = []
+        for i in range(0, len(correct)):
+            if second_correct[1] != correct[i][1] and second_correct[2] != correct[i][2]:
+                new_correct.append(correct[i])
+
+        #print(new_correct)
+        third_correct = list(new_correct[0])
+
+        true_correct.append(first_correct)
+        true_correct.append(second_correct)
+        true_correct.append(third_correct)
+
+        true_wrong = []
+        for i in range(0, len(wrong)):
+            if (first_correct[1] == wrong[i][1] and first_correct[2] == wrong[i][2]) or (second_correct[1] == wrong[i][1] and second_correct[2] == wrong[i][2]) or (third_correct[1] == wrong[i][1] and third_correct[2] == wrong[i][2]):
+                true_wrong.append(wrong[i])
+
+
+        #print("final")
+        #print(unique_final_clustering)
+        #print(true_correct)
+        #print(true_wrong)
+
+        final_correct = []
+        final_wrong = []
+        for correct in true_correct:
+            for word in correct[0]:
+                final_correct.append(word)
+
+        for wrong in true_wrong:
+            for word in wrong[0]:
+                final_wrong.append(word)
+
+        print(final_correct)
+        print(final_wrong)
+
+        return final_correct, final_wrong
+        # remove duplicates across clusters by taking the words in the one with fewest and clear those from the others.
+
+
+
+    def get_models_clustering_results(self, test_set, number_of_models):
+        name_array = []
+        not_wanted = ['npy', 'Readme.md']
+        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
+                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+        for file_index in range(0, len(onlyfiles)):
+            if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1] in onlyfiles[file_index]):
+                continue
+            else:
+                name_array.append(onlyfiles[file_index])
+
+        # print(name_array)
+        random.shuffle(name_array)
+        results = []
+        i = 0
+        for name in name_array:
+            if number_of_models > i:
+                print(name)
+                finished_model = FM.Finished_Models()
+                finished_model.get_model(
+                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+                # If model knows less than 3 words we ignore it!
+                try:
+                    results.append(finished_model.get_model_clusters(test_set))
+                except IndexError:
+                    print("model knows to little")
+                i += 1
+            else:
+                continue
+
+        # print(results)
+        return results
+
 
     def __init__(self):
         print("init")
@@ -556,9 +852,13 @@ enseemble_test = own_enseemble()
 
 #enseemble_test.position_based_tie_handling_majority_vote('danish-topology.txt', topn=10)
 
-print(enseemble_test.get_human_similarities_results('wordsim353.tsv'))
+#print(enseemble_test.get_human_similarities_results('wordsim353.tsv'))
 #print(enseemble_test.get_model_similarities_results('wordsim353.tsv', 10))
 #print(enseemble_test.naive_human_similarity_majority_vote('wordsim353.tsv', 10))
 #print(enseemble_test.ignore_oov_human_similarity_majority_vote('wordsim353.tsv', 10))
-print(enseemble_test.weight_based_on_oov_human_similarity_majority_vote('wordsim353.tsv', 10))
+#print(enseemble_test.weight_based_on_oov_human_similarity_majority_vote('wordsim353.tsv', 10))
 #print(enseemble_test.weight_based_on_total_oov_ignore_oov_human_similarity_majority_vote('wordsim353.tsv', 10))
+
+
+enseemble_test.naive_clustering_majority_vote('Nouns-verbs-adjectives.csv', 5)
+enseemble_test.get_biggest_first_clustering_majority_vote('Nouns-verbs-adjectives.csv', 5)
