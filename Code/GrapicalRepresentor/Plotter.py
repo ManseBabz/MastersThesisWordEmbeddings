@@ -251,13 +251,13 @@ def plot_all_hardcoded():
                                        'weight_based_on_oov_human_similarity_stats.csv',
                                        'weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv'],
                                       ['red', 'blue', 'black', 'green'],
-                                      'allSloaps_pearson_English')
+                                      'allSloaps_spearman_English')
     slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats.csv',
                                        'naive_human_similarity_stats.csv',
                                        'weight_based_on_oov_human_similarity_stats.csv',
                                        'weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv'],
                                       ['red', 'blue', 'black', 'green'],
-                                      'allSloaps_pearson_English_data', with_datapoints=True)
+                                      'allSloaps_spearman_English_data', with_datapoints=True)
     slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats.csv',
                                        'naive_human_similarity_stats.csv',
                                        'weight_based_on_oov_human_similarity_stats.csv',
@@ -272,6 +272,7 @@ def plot_all_hardcoded():
                                       'allSloaps_pearson_English_data', with_datapoints=True)
 
     #Danish
+    """
     plot_acc_plot('Ensamble_test_results_danish.csv', 'Ensamble_test_results_Danish')
     plot_acc_plot('tie_breaking_weighted_majority_vote_danish.csv', 'tie_breaking_weighted_majority_vote_Danish')
     plot_acc_plot('weighted_majority_vote_Ensamble_test_results_danish.csv',
@@ -316,6 +317,6 @@ def plot_all_hardcoded():
                                        'weight_based_on_total_oov_ignore_oov_human_similarity_stats_danish.csv'],
                                       ['red', 'blue', 'black', 'green'],
                                       'allSloaps_pearson_Danish_data', with_datapoints=True)
-
+    """
 
 if __name__ == "__main__": plot_all_hardcoded()
