@@ -2,6 +2,8 @@ import Bootstrap_ensamble_word_embedding as BS
 import numpy as np
 import random
 import os.path
+from os.path import isfile, join
+from os import listdir
 import keyboard
 
 """Accuracy experiments"""
@@ -218,32 +220,30 @@ def generate_statistics_weight_based_on_total_oov_ignore_oov_human_similarity(st
 def humsim_experiment4(startingpoint=5, endpoint=160, skips=5, iterations=5, topn=10):
     while True:
         start =startingpoint
-        generate_statistics_weight_based_on_total_oov_ignore_oov_human_similarity(startingpoint=startingpoint,
+        generate_statistics_weight_based_on_total_oov_ignore_oov_human_similarity(startingpoint=155,
                                                                 endpoint=random.randint(start + 1, endpoint),
                                                                 skips=random.randint(1, skips),
                                                                 iterations=random.randint(1, iterations))
 
 def all_hum_sim(startingpoint=5, endpoint=100, skips=5, iterations=5):
-    while True:
-        generate_statistics_weight_based_on_total_oov_ignore_oov_human_similarity(startingpoint=startingpoint,
+        """generate_statistics_weight_based_on_total_oov_ignore_oov_human_similarity(startingpoint=160,
                                                                 endpoint=endpoint,
                                                                 skips=skips,
                                                                 iterations=iterations)
-        generate_statistics_weight_based_on_oov_human_similarity(startingpoint=startingpoint,
-                                                                 endpoint=endpoint,
+        generate_statistics_weight_based_on_oov_human_similarity(startingpoint=195,
+                                                                 endpoint=196,
                                                                  skips=skips,
-                                                                 iterations=iterations)
-        generate_statistics_ignore_oov_human_similarity(startingpoint=startingpoint,
-                                                        endpoint=endpoint,
-                                                        skips=random.randint(1, skips),
+                                                                 iterations=iterations)"""
+        generate_statistics_ignore_oov_human_similarity(startingpoint=195,
+                                                        endpoint=196,
+                                                        skips=skips,
                                                         iterations=iterations)
-        generate_statistics_naive_human_similarity(startingpoint=startingpoint,
-                                                   endpoint=endpoint,
+        generate_statistics_naive_human_similarity(startingpoint=195,
+                                                   endpoint=196,
                                                    skips=skips,
                                                    iterations=iterations)
 
-        startingpoint = startingpoint+int(skips/2)
-        endpoint = endpoint+int(skips/2)
+
 
 def model_counter():
     name_array = []
@@ -255,7 +255,38 @@ def model_counter():
             continue
         else:
             name_array.append(onlyfiles[file_index])
-    print(len(name_array))
+    #print(len(name_array))
     return len(name_array)
 
-if __name__ == "__main__": all_hum_sim(startingpoint=100, endpoint=model_counter(), skips=5, iterations=5)
+def oov_test(startingpoint, endpoint, skips, iterations):
+    results = []
+    for i in range(startingpoint, endpoint, skips):
+        for j in range(0, iterations):
+            if (os.path.isfile("oov_test.csv")):
+                f = open("oov_test.csv", "a")
+            else:
+                f = open("oov_test.csv", "w")
+
+            ensamble_model = BS.boot_strap_aggregator()
+            dir_path = "questions-words.txt"
+            oov = ensamble_model.oov_test(questions=dir_path, number_of_models=i)
+            res = [[i, oov]]
+            print(res)
+            results.append(res)
+            np.savetxt(f, res, delimiter=',')
+            f.close()
+            print('iteration finished')
+
+def oov_experiment(startingpoint=5, endpoint=160, skips=5, iterations=5):
+    print("oov_test initiated")
+    while True:
+        oov_test(startingpoint=startingpoint,
+                 endpoint=random.randint(startingpoint + 1, endpoint),
+                 skips=random.randint(1, skips),
+                 iterations=random.randint(1, iterations))
+
+
+
+
+
+if __name__ == "__main__": oov_experiment(startingpoint=33)
