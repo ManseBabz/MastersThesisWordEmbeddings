@@ -1,0 +1,7 @@
+spearman correlation result: SpearmanrResult(correlation=-0.9510315803910484, pvalue=4.0204909562107716e-26)
+pearson correlation result: (-0.5978856774323883, 4.544355771809504e-06)
+r value: -0.5978856774323884
+Standard errort: 0.1156983070966265
+t-value: -5.167626842915331
+t-statistics: [1.6772242]
+Is h0 rejected?: False
