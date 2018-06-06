@@ -834,6 +834,44 @@ class boot_strap_aggregator:
         print(spearman)
         return pearson, spearman
 
+
+    def oov_test(self, questions, number_of_models):
+        oov_count = 0
+        #dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        #questions = dir_path + '/Code/TestingSet/' + questions
+
+        results = self.get_multiple_results(questions, topn=1, number_of_models=number_of_models)
+        reals = self.get_expected_acc_results(questions)
+
+        combined_guesses = []
+        for i in range(len(reals)):
+            combined_guess = []
+            for guess in results:
+                # print(guess[i])
+
+                try:
+                    for g in guess[i]:
+                        combined_guess.append(g)
+                except TypeError:
+                    combined_guess.append(guess[i])
+
+                # combined_guess.append(guess[i])
+            combined_guesses.append(combined_guess)
+
+
+        for guess in combined_guesses:
+            count = Counter(guess)
+            most_common = count.most_common(1)[0]
+            # print(most_common)
+            if (most_common[0] is None):
+                # print('hej')
+                try:
+                    most_common = count.most_common(2)[1]
+                except IndexError:
+                    # print('No model has an answer')
+                    oov_count += 1
+
+        return oov_count
     def set_weights(self, weight_list):
         self.weight_list = weight_list
 
