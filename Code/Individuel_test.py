@@ -10,12 +10,12 @@ import csv
 
 
 
-def get_multiple_results(topn=1):
+def get_multiple_results(language, topn=1):
     questions = "questions-words.txt"
     name_array = []
     not_wanted = ['npy', 'Readme.md']
-    onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
-                 isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+    onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language) if
+                 isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language, f))]
     for file_index in range(0, len(onlyfiles)):
         if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1] in onlyfiles[file_index]):
             continue
@@ -30,7 +30,7 @@ def get_multiple_results(topn=1):
     for name in name_array:
         print(name)
         finished_model = FM.Finished_Models()
-        finished_model.get_model(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+        finished_model.get_model(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language+'/' + name)
         #models.append(finished_model)
 
         res = finished_model.get_acc_results(1, questions)
@@ -65,10 +65,10 @@ def get_multiple_results(topn=1):
 
     for res in results:
         print(res)
-        if (os.path.isfile("individual_models_acc_english.csv")):
-            f = open("individual_models_acc_english.csv", "a")
+        if (os.path.isfile("individual_models_acc_"+language+".csv")):
+            f = open("individual_models_acc_"+language+".csv", "a")
         else:
-            f = open("individual_models_acc_english.csv", "w")
+            f = open("individual_models_acc_"+language+".csv", "w")
 
         np.savetxt(f, [res], delimiter=',', newline= "\n", fmt="%s")
         f.close()
@@ -76,12 +76,12 @@ def get_multiple_results(topn=1):
     return results
 
 
-def get_model_similarities_results():
+def get_model_similarities_results(language):
     questions = "wordsim353.tsv"
     name_array = []
     not_wanted = ['npy', 'Readme.md']
-    onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
-                 isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+    onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language) if
+                 isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language, f))]
     for file_index in range(0, len(onlyfiles)):
         if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1] in onlyfiles[file_index]):
             continue
@@ -95,7 +95,7 @@ def get_model_similarities_results():
         print(name)
         finished_model = FM.Finished_Models()
         finished_model.get_model(
-            os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+            os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language+'/' + name)
         pearson, spearman, oov = finished_model.human_similarity_test(questions)
         fixed_result = [name, 10, spearman[0], spearman[1], pearson[0], pearson[1]]
         print(fixed_result)
@@ -105,10 +105,10 @@ def get_model_similarities_results():
 
     for res in results:
         print(res)
-        if (os.path.isfile("individual_models_human_similarity_english.csv")):
-            f = open("individual_models_human_similarity_english.csv", "a")
+        if (os.path.isfile("individual_models_human_similarity_"+language+".csv")):
+            f = open("individual_models_human_similarity_"+language+".csv", "a")
         else:
-            f = open("individual_models_human_similarity_english.csv", "w")
+            f = open("individual_models_human_similarity_"+language+".csv", "w")
 
         np.savetxt(f, [res], delimiter=',', newline= "\n", fmt="%s")
         f.close()
@@ -139,11 +139,11 @@ def get_expected_acc_results(questions):
             results.append(expected)
     return results
 
-def get_model_clustering_results():
+def get_model_clustering_results(language):
     name_array = []
     not_wanted = ['npy', 'Readme.md']
-    onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
-                 isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+    onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language) if
+                 isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language, f))]
     for file_index in range(0, len(onlyfiles)):
         if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1] in onlyfiles[file_index]):
             continue
@@ -153,51 +153,88 @@ def get_model_clustering_results():
     # print(name_array)
 
 
+    if(language =='Danish'):
+        for test in ["Navneord-udsagnsord-tillægsord.csv", "Frugt-dyr-køretøjer.csv", "Hus-værktøj-kropsdele.csv"]:
+            dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+            test_set = dir_path + '/Code/TestingSet/' + test
 
-    for test in ["Navneord-udsagnsord-tillægsord.csv", "Frugt-dyr-køretøjer.csv", "Hus-værktøj-kropsdele.csv"]:
-        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        test_set = dir_path + '/Code/TestingSet/' + test
+            reals = []
+            with open(test_set) as csvfile:
+                test_reader = csv.reader(csvfile, delimiter=',')
+                # initialize first cluster
+                cluster = []
+                for row in test_reader:
+                    if not row:
+                        # Add new cluster
+                        reals.append(cluster)
+                        cluster = []
+                    else:
+                        cluster.append(''.join(row))
+                # add last cluster
+                reals.append(cluster)
 
-        reals = []
-        with open(test_set) as csvfile:
-            test_reader = csv.reader(csvfile, delimiter=',')
-            # initialize first cluster
-            cluster = []
-            for row in test_reader:
-                if not row:
-                    # Add new cluster
-                    reals.append(cluster)
-                    cluster = []
-                else:
-                    cluster.append(''.join(row))
-            # add last cluster
-            reals.append(cluster)
+            print(reals)
+            results = []
+            for name in name_array:
+                print(name)
+                finished_model = FM.Finished_Models()
+                finished_model.get_model(
+                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+                try:
+                    result = finished_model.clustering(reals)
+                    print(result)
+                    fixed_result = [name, result[1], result[3]]
+                    print(fixed_result)
+                    results.append(fixed_result)
+                except IndexError:
+                    print("model knows to little")
+    elif(language=='English'):
+        for test in ["Nouns-verbs-adjectives.csv", "Fruits-animals-vehicles.csv", "House-tools-body.csv"]:
+            dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+            test_set = dir_path + '/Code/TestingSet/' + test
 
-        print(reals)
-        results = []
-        for name in name_array:
-            print(name)
-            finished_model = FM.Finished_Models()
-            finished_model.get_model(
-                os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
-            try:
-                result = finished_model.clustering(reals)
-                print(result)
-                fixed_result = [name, result[1], result[3]]
-                print(fixed_result)
-                results.append(fixed_result)
-            except IndexError:
-                print("model knows to little")
+            reals = []
+            with open(test_set) as csvfile:
+                test_reader = csv.reader(csvfile, delimiter=',')
+                # initialize first cluster
+                cluster = []
+                for row in test_reader:
+                    if not row:
+                        # Add new cluster
+                        reals.append(cluster)
+                        cluster = []
+                    else:
+                        cluster.append(''.join(row))
+                # add last cluster
+                reals.append(cluster)
+
+            print(reals)
+            results = []
+            for name in name_array:
+                print(name)
+                finished_model = FM.Finished_Models()
+                finished_model.get_model(
+                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+                try:
+                    result = finished_model.clustering(reals)
+                    print(result)
+                    fixed_result = [name, result[1], result[3]]
+                    print(fixed_result)
+                    results.append(fixed_result)
+                except IndexError:
+                    print("model knows to little")
+        else:
+            raise ValueError("unimplemented language")
 
 
         print(results)
 
         for res in results:
             print(res)
-            if (os.path.isfile("individual_models_clustering_english" + test + ".csv")):
-                f = open("individual_models_clustering_english" + test + ".csv", "a")
+            if (os.path.isfile("individual_models_clustering_"+language+"_" + test + ".csv")):
+                f = open("individual_models_clustering_"+language+"_" + test + ".csv", "a")
             else:
-                f = open("individual_models_clustering_english" + test + ".csv", "w")
+                f = open("individual_models_clustering_"+language+"_" + test + ".csv", "w")
 
             np.savetxt(f, [res], delimiter=',', newline= "\n", fmt="%s")
             f.close()

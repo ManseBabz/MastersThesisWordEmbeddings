@@ -10,7 +10,7 @@ import LeaningAlgoImpl.Finished_Models as FM
 import numpy.random as random
 
 """
-This module contains multiple ensamble methods
+This model is for playing with, in order to test methods, do not use for testing and alike
 """
 
 ####################################################################################################################################

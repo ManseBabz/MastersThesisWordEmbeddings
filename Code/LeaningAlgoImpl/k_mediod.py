@@ -65,15 +65,16 @@ class k_mediod:
         #print(clusters)
         #print(mediods)
         #print(new_cost)
-        while new_cost < previous_cost:
+        i = 0
+        while new_cost < previous_cost and i < 20: #max 20 iterations to avoid too many updates
             previous_cost = new_cost
             clusters, mediods, new_cost = k_mediod.update_clusters(self, clusters, mediods)
+            i += 1
             #print(clusters)
             #print(mediods)
-            #print(previous_cost)
+            print(previous_cost)
             #print(new_cost)
             #print(new_cost < previous_cost)
-
 
         return clusters, mediods, new_cost
 
@@ -88,10 +89,17 @@ class k_mediod:
                 for word in cluster:
                     if word not in old_mediods:
                         mediods[i] = word
+                        #print(mediods)
+                        #print(clusters)
+                        #print(mediods)
+                        pre_clusters = list(clusters)
                         clusters = k_mediod.reassign_clusters(self, clusters, mediods)
+                        #print(clusters)
                         cost = k_mediod.total_cost(self, clusters, mediods)
                         if cost < old_cost:
                             return clusters, mediods, cost
+                        else :
+                            clusters = list(pre_clusters)
         return old_clusters, old_mediods, old_cost
 
     def reassign_clusters(self, clusters, mediods):
@@ -99,6 +107,8 @@ class k_mediod:
         for cluster in clusters:
             for word in cluster:
                 all_words.append(word)
+        #print(all_words)
+        #print("reassigning")
         #print(all_words)
         new_clusters = k_mediod.assign_mediods(self, mediods,  all_words)
         return new_clusters
@@ -120,7 +130,7 @@ class k_mediod:
             for i in range(0, len(mediods)):
                 if mediods[i] == closets_mediod and mediods[i] != word:
                     clusters[i].append(word)
-
+        #print("assigned")
         return clusters
 
 

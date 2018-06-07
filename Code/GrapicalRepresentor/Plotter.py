@@ -264,108 +264,108 @@ def oov_plot(data_file_name, save_file_name):
 
 def plot_all_hardcoded():
     #English
-    plot_acc_plot('Ensamble_test_results.csv', 'Ensamble_test_results_English')
-    plot_acc_plot('tie_breaking_weighted_majority_vote.csv', 'tie_breaking_weighted_majority_vote_English')
-    plot_acc_plot('weighted_majority_vote_Ensamble_test_results.csv', 'weighted_majority_vote_Ensamble_test_results_English')
-    plot_acc_plot('weighted_majority_vote_Ensamble_test_results_extream.csv',
+    plot_acc_plot('Ensamble_test_results_English.csv', 'Ensamble_test_results_English')
+    plot_acc_plot('tie_breaking_weighted_majority_vote_English.csv', 'tie_breaking_weighted_majority_vote_English')
+    plot_acc_plot('weighted_majority_vote_Ensamble_test_results_English.csv', 'weighted_majority_vote_Ensamble_test_results_English')
+    plot_acc_plot('weighted_majority_vote_Ensamble_test_results_English_extream.csv',
                   'weighted_majority_vote_Ensamble_test_results_English_extream')
-    plot_hum_sim_plot('ignore_oov_human_similarity_stats.csv', 'ignore_oov_human_similarity_stats_English')
-    plot_hum_sim_plot('naive_human_similarity_stats.csv', 'naive_human_similarity_stats_English')
-    plot_hum_sim_plot('weight_based_on_oov_human_similarity_stats.csv', 'weight_based_on_oov_human_similarity_stats_English')
-    plot_hum_sim_plot('weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv', 'weight_based_on_total_oov_ignore_oov_human_similarity_stats_English')
-    slope_eval_plotter_acc(['Ensamble_test_results.csv',
-                           'tie_breaking_weighted_majority_vote.csv',
-                           'weighted_majority_vote_Ensamble_test_results.csv'],
+    plot_hum_sim_plot('ignore_oov_human_similarity_stats_English.csv', 'ignore_oov_human_similarity_stats_English')
+    plot_hum_sim_plot('naive_human_similarity_stats_English.csv', 'naive_human_similarity_stats_English')
+    plot_hum_sim_plot('weight_based_on_oov_human_similarity_stats_English.csv', 'weight_based_on_oov_human_similarity_stats_English')
+    plot_hum_sim_plot('weight_based_on_total_oov_ignore_oov_human_similarity_stats_English.csv', 'weight_based_on_total_oov_ignore_oov_human_similarity_stats_English')
+    slope_eval_plotter_acc(['Ensamble_test_results_English.csv',
+                           'tie_breaking_weighted_majority_vote_English.csv',
+                           'weighted_majority_vote_Ensamble_test_results_English.csv'],
                           ['red', 'blue', 'green'],
                           'allSloaps_acc_English')
-    slope_eval_plotter_acc(['Ensamble_test_results.csv',
-                           'tie_breaking_weighted_majority_vote.csv',
-                           'weighted_majority_vote_Ensamble_test_results.csv'],
+    slope_eval_plotter_acc(['Ensamble_test_results_English.csv',
+                           'tie_breaking_weighted_majority_vote_English.csv',
+                           'weighted_majority_vote_Ensamble_test_results_English.csv'],
                            ['red', 'blue', 'green'],
                            'allSloaps_acc_English_data', with_datapoints=True)
-    slope_eval_plotter_acc(['Ensamble_test_results.csv',
-                            'tie_breaking_weighted_majority_vote.csv',
-                            'weighted_majority_vote_Ensamble_test_results_extream.csv'],
+    slope_eval_plotter_acc(['Ensamble_test_results_English.csv',
+                            'tie_breaking_weighted_majority_vote_English.csv',
+                            'weighted_majority_vote_Ensamble_test_results_English_extream.csv'],
                            ['red', 'blue', 'green'],
                            'allSloaps_acc_English_extream', with_datapoints=False)
-    slope_eval_plotter_acc(['Ensamble_test_results.csv',
-                            'tie_breaking_weighted_majority_vote.csv',
-                            'weighted_majority_vote_Ensamble_test_results_extream.csv'],
+    slope_eval_plotter_acc(['Ensamble_test_results_English.csv',
+                            'tie_breaking_weighted_majority_vote_English.csv',
+                            'weighted_majority_vote_Ensamble_test_results_English_extream.csv'],
                            ['red', 'blue', 'green'],
                            'allSloaps_acc_English_data_extream', with_datapoints=True)
-    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats.csv',
-                                       'naive_human_similarity_stats.csv',
-                                       'weight_based_on_oov_human_similarity_stats.csv',
-                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv'],
+    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats_English.csv',
+                                       'naive_human_similarity_stats_English.csv',
+                                       'weight_based_on_oov_human_similarity_stats_English.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_English.csv'],
                                       ['red', 'blue', 'black', 'green'],
                                       'allSloaps_spearman_English')
-    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats.csv',
-                                       'naive_human_similarity_stats.csv',
-                                       'weight_based_on_oov_human_similarity_stats.csv',
-                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv'],
+    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats_English.csv',
+                                       'naive_human_similarity_stats_English.csv',
+                                       'weight_based_on_oov_human_similarity_stats_English.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_English.csv'],
                                       ['red', 'blue', 'black', 'green'],
                                       'allSloaps_spearman_English_data', with_datapoints=True)
-    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats.csv',
-                                       'naive_human_similarity_stats.csv',
-                                       'weight_based_on_oov_human_similarity_stats.csv',
-                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv'],
+    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats_English.csv',
+                                       'naive_human_similarity_stats_English.csv',
+                                       'weight_based_on_oov_human_similarity_stats_English.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_English.csv'],
                                       ['red', 'blue', 'black', 'green'],
                                       'allSloaps_pearson_English')
-    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats.csv',
-                                       'naive_human_similarity_stats.csv',
-                                       'weight_based_on_oov_human_similarity_stats.csv',
-                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats.csv'],
+    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats_English.csv',
+                                       'naive_human_similarity_stats_English.csv',
+                                       'weight_based_on_oov_human_similarity_stats_English.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_English.csv'],
                                       ['red', 'blue', 'black', 'green'],
                                       'allSloaps_pearson_English_data', with_datapoints=True)
-    oov_plot('oov_test.csv', 'oov_test_english')
+    oov_plot('oov_test_English.csv', 'oov_test_english')
 
     #Danish
     """
-    plot_acc_plot('Ensamble_test_results_danish.csv', 'Ensamble_test_results_Danish')
-    plot_acc_plot('tie_breaking_weighted_majority_vote_danish.csv', 'tie_breaking_weighted_majority_vote_Danish')
-    plot_acc_plot('weighted_majority_vote_Ensamble_test_results_danish.csv',
+    plot_acc_plot('Ensamble_test_results_Danish.csv', 'Ensamble_test_results_Danish')
+    plot_acc_plot('tie_breaking_weighted_majority_vote_Danish.csv', 'tie_breaking_weighted_majority_vote_Danish')
+    plot_acc_plot('weighted_majority_vote_Ensamble_test_results_Danish.csv',
                   'weighted_majority_vote_Ensamble_test_results_Danish')
-    plot_hum_sim_plot('ignore_oov_human_similarity_stats_danish.csv', 'ignore_oov_human_similarity_stats_Danish')
-    plot_hum_sim_plot('naive_human_similarity_stats_danish.csv', 'naive_human_similarity_stats_Danish')
-    plot_hum_sim_plot('weight_based_on_oov_human_similarity_stats_danish.csv',
+    plot_hum_sim_plot('ignore_oov_human_similarity_stats_Danish.csv', 'ignore_oov_human_similarity_stats_Danish')
+    plot_hum_sim_plot('naive_human_similarity_stats_Danish.csv', 'naive_human_similarity_stats_Danish')
+    plot_hum_sim_plot('weight_based_on_oov_human_similarity_stats_Danish.csv',
                       'weight_based_on_oov_human_similarity_stats_Danish')
-    plot_hum_sim_plot('weight_based_on_total_oov_ignore_oov_human_similarity_stats_danish.csv',
+    plot_hum_sim_plot('weight_based_on_total_oov_ignore_oov_human_similarity_stats_Danish.csv',
                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_Danish')
-    slope_eval_plotter_acc(['Ensamble_test_results.csv',
-                            'tie_breaking_weighted_majority_vote.csv',
-                            'weighted_majority_vote_Ensamble_test_results.csv'],
+    slope_eval_plotter_acc(['Ensamble_test_results_Danish.csv',
+                            'tie_breaking_weighted_majority_vote_Danish.csv',
+                            'weighted_majority_vote_Ensamble_test_results_Danish.csv'],
                            ['red', 'blue', 'green'],
                            'allSloaps_acc_Danish')
-    slope_eval_plotter_acc(['Ensamble_test_results.csv',
-                            'tie_breaking_weighted_majority_vote.csv',
-                            'weighted_majority_vote_Ensamble_test_results.csv'],
+    slope_eval_plotter_acc(['Ensamble_test_results_Danish.csv',
+                            'tie_breaking_weighted_majority_vote_Danish.csv',
+                            'weighted_majority_vote_Ensamble_test_results_Danish.csv'],
                            ['red', 'blue', 'green'],
                            'allSloaps_acc_Danish_data', with_datapoints=True)
-    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats_danish.csv',
-                                       'naive_human_similarity_stats_danish.csv',
-                                       'weight_based_on_oov_human_similarity_stats_danish.csv',
-                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_danish.csv'],
+    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats_Danish.csv',
+                                       'naive_human_similarity_stats_Danish.csv',
+                                       'weight_based_on_oov_human_similarity_stats_Danish.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_Danish.csv'],
                                        ['red', 'blue', 'black', 'green'],
                                        'allSloaps_pearson_Danish')
-    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats_danish.csv',
-                                       'naive_human_similarity_stats_danish.csv',
-                                       'weight_based_on_oov_human_similarity_stats_danish.csv',
-                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_danish.csv'],
+    slope_eval_plotter_humsim_spearman(['ignore_oov_human_similarity_stats_Danish.csv',
+                                       'naive_human_similarity_stats_Danish.csv',
+                                       'weight_based_on_oov_human_similarity_stats_Danish.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_Danish.csv'],
                                        ['red', 'blue', 'black', 'green'],
                                        'allSloaps_pearson_Danish_data', with_datapoints=True)
-    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats_danish.csv',
-                                       'naive_human_similarity_stats_danish.csv',
-                                       'weight_based_on_oov_human_similarity_stats_danish.csv',
-                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_danish.csv'],
+    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats_Danish.csv',
+                                       'naive_human_similarity_stats_Danish.csv',
+                                       'weight_based_on_oov_human_similarity_stats_Danish.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_Danish.csv'],
                                       ['red', 'blue', 'black', 'green'],
                                       'allSloaps_pearson_Danish')
-    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats_danish.csv',
-                                       'naive_human_similarity_stats_danish.csv',
-                                       'weight_based_on_oov_human_similarity_stats_danish.csv',
-                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_danish.csv'],
+    slope_eval_plotter_humsim_pearson(['ignore_oov_human_similarity_stats_Danish.csv',
+                                       'naive_human_similarity_stats_Danish.csv',
+                                       'weight_based_on_oov_human_similarity_stats_Danish.csv',
+                                       'weight_based_on_total_oov_ignore_oov_human_similarity_stats_Danish.csv'],
                                       ['red', 'blue', 'black', 'green'],
                                       'allSloaps_pearson_Danish_data', with_datapoints=True)
-    """
+                                      """
 
 
 

@@ -31,6 +31,10 @@ def update_prob(list_of_results, key_word, prob_value):
             entry[1] += prob_value
     return list_of_results
 
+"""
+    TODO This model type has yet to be implemented
+"""
+
 class Stackingmodel:
     def stacking_model_trainer(self, weight_file_name="StackingWeights"):
         savepath = os.path.dirname(os.path.realpath(__file__))+"/LeaningAlgoImpl/Weight_models/"+weight_file_name

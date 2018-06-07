@@ -8,24 +8,30 @@ from gensim.models import KeyedVectors
 class Skip_Gram:
 
 
-    def get_model(self, hs =1, negative= 5, cbow_mean=0, iter= 10, size=100, min_count=5, max_vocab_size=1000000, workers=3, articles_to_learn=1000, randomTrain=False):
+    def get_model(self, language, hs =1, negative= 5, cbow_mean=0, iter= 10, size=100, min_count=5, max_vocab_size=1000000, workers=3, articles_to_learn=1000, randomTrain=False):
         dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         if(self.dev_mode):
             sentences1 = MySentences(dir_path + '/DataSet')  # Gets all files from folder at location.
         else:
             print("Training model, be aware this is on a real trainingset, so it might take a while")
-            sentences1 = ZippedSentences(dir_path+'/RealDataSet/wiki_flat.zip', articles_to_learn, randomTrain) #Make train-data from a large sample of data using articles_to_learn articles
-
-            Skip_Gram_model = Word2Vec(sentences=sentences1, #Sentences to train from
-                              sg=0, #1 for CBOW, 0 for Skip-gram
-                              hs=hs, #1 for hierarchical softmax and 0 and non-zero in negative argument then negative sampling is used.
-                              negative=negative, #0 for no negative sampling and above specifies how many noise words should be drawn. (Usually 5-20 is good).
-                              cbow_mean=cbow_mean, #0 for sum of context vectors, 1 for mean of context vectors. Only used on CBOW.
-                              iter=iter, #number of epochs.
-                              size=size, #feature vector dimensionality
-                              min_count=min_count, #minimum frequency of words required
-                              max_vocab_size=max_vocab_size, #How much RAM is allowed, 10 million words needs approx 1GB RAM. None = infinite RAM
-                              workers=workers, #How many threads are started for training.
+            if (language == 'English'):
+                sentences1 = ZippedSentences(dir_path + '/RealDataSet/wiki_flat.zip', articles_to_learn,
+                                             randomTrain)  # Make train-data from a large sample of data using articles_to_learn articles
+            elif (language == 'Danish'):
+                sentences1 = ZippedSentences(dir_path + '/RealDataSet/' + language + '/danishTrainingSet.zip',
+                                             articles_to_learn, randomTrain)
+            else:
+                raise ValueError('No apropiate trainings set')
+        Skip_Gram_model = Word2Vec(sentences=sentences1, #Sentences to train from
+                          sg=0, #1 for CBOW, 0 for Skip-gram
+                          hs=hs, #1 for hierarchical softmax and 0 and non-zero in negative argument then negative sampling is used.
+                          negative=negative, #0 for no negative sampling and above specifies how many noise words should be drawn. (Usually 5-20 is good).
+                          cbow_mean=cbow_mean, #0 for sum of context vectors, 1 for mean of context vectors. Only used on CBOW.
+                          iter=iter, #number of epochs.
+                          size=size, #feature vector dimensionality
+                          min_count=min_count, #minimum frequency of words required
+                          max_vocab_size=max_vocab_size, #How much RAM is allowed, 10 million words needs approx 1GB RAM. None = infinite RAM
+                          workers=workers, #How many threads are started for training.
 
                               )
         self.model = Skip_Gram_model
@@ -47,33 +53,33 @@ class Skip_Gram:
         except KeyError:
             return None
 
-    def load_model(self, name):
+    def load_model(self, name, language):
         print("Great you were able to load a model, no need to create a new one")
         if (self.dev_mode):
-            dir_path = os.path.dirname(os.path.realpath(__file__)) + "/DevModels/" + name
+            dir_path = os.path.dirname(os.path.realpath(__file__)) + "/DevModels/"+language+'/' + name
             self.finished_model = KeyedVectors.load(dir_path)
         else:
-            dir_path = os.path.dirname(os.path.realpath(__file__))+"/Models/"+name
+            dir_path = os.path.dirname(os.path.realpath(__file__))+"/Models/"+language+'/'+name
             self.finished_model = KeyedVectors.load(dir_path)
 
-    def save_model(self, name):
+    def save_model(self, name, language):
         if(self.dev_mode):
             dir_path = os.path.dirname(os.path.realpath(__file__))
-            self.model.save(dir_path + "/DevModels/" + name)
+            self.model.save(dir_path + "/DevModels/"+language+'/' + name)
         else:
             dir_path = os.path.dirname(os.path.realpath(__file__))
-            self.model.save(dir_path+"/Models/"+name)
+            self.model.save(dir_path+"/Models/"+language+'/'+name)
 
     def finished_training(self):
         self.finished_model = self.model.wv
 
-    def save_finished_model(self, name):
+    def save_finished_model(self, name, language):
         if (self.dev_mode):
             dir_path = os.path.dirname(os.path.realpath(__file__))
-            self.finished_model.save(dir_path + "/DevModels/" + name)
+            self.finished_model.save(dir_path + "/DevModels/"+language+'/' + name)
         else:
             dir_path = os.path.dirname(os.path.realpath(__file__))
-            self.finished_model.save(dir_path + "/Models/" + name)
+            self.finished_model.save(dir_path + "/Models/"+language+'/' + name)
 
     def __init__(self, dev_mode=False):
         self.model = None

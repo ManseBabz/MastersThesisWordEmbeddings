@@ -1,6 +1,5 @@
 import predictor_setup as ps
-import os, operator
-import numpy as np
+import os
 from scipy import stats
 from Our_FastText import utils
 from collections import Counter
@@ -8,6 +7,7 @@ from os.path import isfile, join
 from os import listdir
 import LeaningAlgoImpl.Finished_Models as FM
 import numpy.random as random
+import csv
 
 
 def result_unpacker(list_of_results):
@@ -174,8 +174,8 @@ class boot_strap_aggregator:
             res = sum(results) / len(results)
         return res
 
-    def majority_vote_fast(self, questions, topn=1, number_of_models = 20):
-        guesses = self.get_multiple_results(questions, number_of_models=number_of_models, topn=topn)
+    def majority_vote_fast(self, questions, language, topn=1, number_of_models = 20):
+        guesses = self.get_multiple_results(questions, language, number_of_models=number_of_models, topn=topn)
         reals = self.get_expected_acc_results(questions)
 
         combined_guesses = []
@@ -234,8 +234,8 @@ class boot_strap_aggregator:
         #print(wrong)
         return number_of_correct, number_of_wrong
 
-    def position_based_tie_handling_majority_vote(self, questions, topn = 1, number_of_models=10):
-        guesses = self.get_multiple_results(questions, number_of_models=number_of_models, topn=topn)
+    def position_based_tie_handling_majority_vote(self, questions, language, topn = 1, number_of_models=10):
+        guesses = self.get_multiple_results(questions, language, number_of_models=number_of_models, topn=topn)
         reals = self.get_expected_acc_results(questions)
 
         combined_guesses = []
@@ -294,8 +294,8 @@ class boot_strap_aggregator:
         print(wrong)
         return number_of_correct, number_of_wrong
 
-    def tie_handling_majority_vote(self, questions, topn = 1, number_of_models=10):
-        guesses = self.get_multiple_tie_handling_results(questions, number_of_models=number_of_models, topn=topn)
+    def tie_handling_majority_vote(self, questions, language, topn = 1, number_of_models=10):
+        guesses = self.get_multiple_tie_handling_results(questions, language, number_of_models=number_of_models, topn=topn)
         reals = self.get_expected_acc_results(questions)
 
         #print(reals)
@@ -388,11 +388,11 @@ class boot_strap_aggregator:
         #print(sorted_combined_guess_list)
         return sorted_combined_guess_list
 
-    def get_multiple_tie_handling_results(self, questions, number_of_models, topn):
+    def get_multiple_tie_handling_results(self, questions, language, number_of_models, topn):
         name_array = []
         not_wanted = ['npy', 'Readme.md']
-        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
-                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language) if
+                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language, f))]
         for file_index in range(0, len(onlyfiles)):
             if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1]in onlyfiles[file_index]):
                 continue
@@ -407,7 +407,7 @@ class boot_strap_aggregator:
             if number_of_models > i:
                 #print(name)
                 finished_model = FM.Finished_Models()
-                finished_model.get_model(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+                finished_model.get_model(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language+'/' + name)
                 results.append(finished_model.get_acc_results_extra(topn, questions))
                 i += 1
             else:
@@ -478,11 +478,11 @@ class boot_strap_aggregator:
         #print(sorted_combined_guess_list)
         return sorted_combined_guess_list
 
-    def get_multiple_results(self, questions, topn, number_of_models=5):
+    def get_multiple_results(self, questions, language, topn, number_of_models=5):
         name_array = []
         not_wanted = ['npy', 'Readme.md']
-        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
-                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language) if
+                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language, f))]
         for file_index in range(0, len(onlyfiles)):
             if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1] in onlyfiles[file_index]):
                 continue
@@ -499,7 +499,7 @@ class boot_strap_aggregator:
                 #print(name)
                 finished_model = FM.Finished_Models()
                 finished_model.get_model(
-                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language+'/' + name)
                 models.append(finished_model)
                 i += 1
             else:
@@ -514,7 +514,7 @@ class boot_strap_aggregator:
         # print(results)
         return results
 
-    def accuracy(self, questions, case_insensitive=True, predictor_method=0, fast_process=True, number_of_models=20):
+    def accuracy(self, questions, language, case_insensitive=True, predictor_method=0, fast_process=True, number_of_models=20):
         correct = 0
         incorrect = 0
         sections, section = [], None
@@ -573,19 +573,19 @@ class boot_strap_aggregator:
             return sections
         else:
             if(predictor_method== 0):
-                correct, wrong = boot_strap_aggregator.majority_vote_fast(self, questions=questions, topn=10, number_of_models=number_of_models)
+                correct, wrong = boot_strap_aggregator.majority_vote_fast(self, questions=questions, language=language, topn=10, number_of_models=number_of_models)
                 return correct, wrong
             elif(predictor_method==3):
-                correct, wrong = boot_strap_aggregator.tie_handling_majority_vote(self, questions=questions, topn=10,
+                correct, wrong = boot_strap_aggregator.tie_handling_majority_vote(self, questions=questions, language= language, topn=10,
                                                                           number_of_models=number_of_models)
                 return correct, wrong
             elif(predictor_method==4):
-                correct, wrong = boot_strap_aggregator.position_based_tie_handling_majority_vote(self, questions=questions, topn=10, number_of_models=number_of_models)
+                correct, wrong = boot_strap_aggregator.position_based_tie_handling_majority_vote(self, questions=questions, language=language, topn=10, number_of_models=number_of_models)
                 return correct, wrong
 
-    def naive_human_similarity_majority_vote(self, questions, number_of_models):
+    def naive_human_similarity_majority_vote(self, questions, language, number_of_models):
         reals = self.get_human_similarities_results(questions)
-        guesses = self.get_model_similarities_results(questions, number_of_models)
+        guesses = self.get_model_similarities_results(questions, language, number_of_models)
 
         combined_guesses = []
         for j in range(0, len(guesses[0][0])):
@@ -610,9 +610,9 @@ class boot_strap_aggregator:
         pearson_result = stats.pearsonr(reals, average_guesses)
         return spearman_result, pearson_result
 
-    def ignore_oov_human_similarity_majority_vote(self, questions, number_of_models):
+    def ignore_oov_human_similarity_majority_vote(self, questions, language, number_of_models):
         reals = self.get_human_similarities_results(questions)
-        guesses = self.get_model_similarities_results(questions, number_of_models)
+        guesses = self.get_model_similarities_results(questions, language, number_of_models)
 
         combined_guesses = []
         for j in range(0, len(guesses[0][0])):
@@ -643,9 +643,9 @@ class boot_strap_aggregator:
         pearson_result = stats.pearsonr(reals, average_guesses)
         return spearman_result, pearson_result
 
-    def weight_based_on_oov_human_similarity_majority_vote(self, questions, number_of_models):
+    def weight_based_on_oov_human_similarity_majority_vote(self, questions, language, number_of_models):
         reals = self.get_human_similarities_results(questions)
-        guesses = self.get_model_similarities_results(questions, number_of_models)
+        guesses = self.get_model_similarities_results(questions, language, number_of_models)
         # print(guesses)
         guesses = sorted(guesses, key=lambda x: x[1], reverse=True)  # changed
         # print(guesses)
@@ -678,9 +678,9 @@ class boot_strap_aggregator:
         pearson_result = stats.pearsonr(reals, average_guesses)
         return spearman_result, pearson_result
 
-    def weight_based_on_total_oov_ignore_oov_human_similarity_majority_vote(self, questions, number_of_models):
+    def weight_based_on_total_oov_ignore_oov_human_similarity_majority_vote(self, questions, language, number_of_models):
         reals = self.get_human_similarities_results(questions)
-        guesses = self.get_model_similarities_results(questions, number_of_models)
+        guesses = self.get_model_similarities_results(questions, language, number_of_models)
 
         guesses = sorted(guesses, key=lambda x: x[1], reverse=True)
 
@@ -741,11 +741,11 @@ class boot_strap_aggregator:
                 results.append(sim)  # Similarity from the dataset
         return results
 
-    def get_model_similarities_results(self, questions, number_of_models):
+    def get_model_similarities_results(self, questions, language, number_of_models):
         name_array = []
         not_wanted = ['npy', 'Readme.md']
-        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models") if
-                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models", f))]
+        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language) if
+                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language, f))]
         for file_index in range(0, len(onlyfiles)):
             if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1] in onlyfiles[file_index]):
                 continue
@@ -761,7 +761,7 @@ class boot_strap_aggregator:
                 print(name)
                 finished_model = FM.Finished_Models()
                 finished_model.get_model(
-                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/" + name)
+                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language+'/' + name)
                 results.append(finished_model.model_similarity_results(questions))
                 i += 1
             else:
@@ -771,19 +771,19 @@ class boot_strap_aggregator:
         return results
 
 
-    def evaluate_word_pairs(self, pairs, number_of_models=10,delimiter='\t', restrict_vocab=300000,
+    def evaluate_word_pairs(self, pairs, language, number_of_models=10,delimiter='\t', restrict_vocab=300000,
                             case_insensitive=False, dummy4unknown=False, similarity_model_type="0", fast = True):
         if fast:
             if similarity_model_type == 0:
-                return boot_strap_aggregator.naive_human_similarity_majority_vote(self, questions=pairs, number_of_models=number_of_models)
+                return boot_strap_aggregator.naive_human_similarity_majority_vote(self, questions=pairs, language=language, number_of_models=number_of_models)
             elif similarity_model_type == 1:
-                return boot_strap_aggregator.ignore_oov_human_similarity_majority_vote(self, questions=pairs,
+                return boot_strap_aggregator.ignore_oov_human_similarity_majority_vote(self, questions=pairs, language=language,
                                                                                   number_of_models=number_of_models)
             elif similarity_model_type == 2:
-                return boot_strap_aggregator.weight_based_on_oov_human_similarity_majority_vote(self, questions=pairs,
+                return boot_strap_aggregator.weight_based_on_oov_human_similarity_majority_vote(self, questions=pairs, language=language,
                                                                                        number_of_models=number_of_models)
             elif similarity_model_type == 3:
-                return boot_strap_aggregator.weight_based_on_total_oov_ignore_oov_human_similarity_majority_vote(self, questions=pairs,
+                return boot_strap_aggregator.weight_based_on_total_oov_ignore_oov_human_similarity_majority_vote(self, questions=pairs, language=language,
                                                                                                 number_of_models=number_of_models)
             else:
                 raise ValueError("incorrect argument type for predictor_method")
@@ -835,12 +835,12 @@ class boot_strap_aggregator:
         return pearson, spearman
 
 
-    def oov_test(self, questions, number_of_models):
+    def oov_test(self, questions, language, number_of_models):
         oov_count = 0
         #dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         #questions = dir_path + '/Code/TestingSet/' + questions
 
-        results = self.get_multiple_results(questions, topn=1, number_of_models=number_of_models)
+        results = self.get_multiple_results(questions, language, topn=1, number_of_models=number_of_models)
         reals = self.get_expected_acc_results(questions)
 
         combined_guesses = []
@@ -872,6 +872,322 @@ class boot_strap_aggregator:
                     oov_count += 1
 
         return oov_count
+
+
+    def ensemble_clusters(self, words_to_cluster, language, number_of_models=10, clustering_type = 0):
+        if clustering_type == 0:
+            return self.naive_clustering_majority_vote(words_to_cluster, language, number_of_models)
+        elif clustering_type == 1:
+            return self.get_biggest_first_clustering_majority_vote(words_to_cluster, language, number_of_models)
+        else:
+            raise ValueError("incorrect argument type for predictor_method")
+
+    def naive_clustering_majority_vote(self, test_set, language, number_of_models):
+        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        test_set = dir_path + '/Code/TestingSet/' + test_set
+
+        reals = []
+        with open(test_set) as csvfile:
+            test_reader = csv.reader(csvfile, delimiter=',')
+            #initialize first cluster
+            cluster = []
+            for row in test_reader:
+                if not row:
+                    #Add new cluster
+                    reals.append(cluster)
+                    cluster = []
+                else:
+                    cluster.append(''.join(row))
+            # add last cluster
+            reals.append(cluster)
+
+        lenght_of_testset = 0
+        for res in reals:
+            lenght_of_testset += len(res)
+        print(lenght_of_testset)
+        print(reals)
+
+        guesses = self.get_models_clustering_results(reals, language, number_of_models)
+
+        print(guesses)
+        #print(guesses[0][0])
+
+        # Assign first cluster to final cluster
+        final_clustering = guesses[0][0]
+
+        for guess in guesses:
+            new_final_clustering = []
+
+            for i in range(0, len(guess[1])):
+                for cluster in final_clustering:
+                    if guess[1][i] in cluster:
+                        clust = list(cluster)
+
+                        for word in guess[0][i]:
+                            if word not in clust:
+                                clust.append(word)
+                        new_final_clustering.append(clust)
+
+
+            for cluster in final_clustering:
+                for clust in new_final_clustering:
+                    if clust[0] in cluster:
+                        for word in clust:
+                            if word not in cluster:
+                                cluster.append(word)
+
+
+
+        final_clustering.sort(key=len)
+
+        correct, wrong = self.get_clustering_result(final_clustering, reals)
+
+        return correct, wrong, lenght_of_testset
+
+    def get_biggest_first_clustering_majority_vote(self, test_set, language, number_of_models):
+        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        test_set = dir_path + '/Code/TestingSet/' + test_set
+
+        reals = []
+        with open(test_set) as csvfile:
+            test_reader = csv.reader(csvfile, delimiter=',')
+            #initialize first cluster
+            cluster = []
+            for row in test_reader:
+                if not row:
+                    #Add new cluster
+                    reals.append(cluster)
+                    cluster = []
+                else:
+                    cluster.append(''.join(row))
+            # add last cluster
+            reals.append(cluster)
+
+        lenght_of_testset = 0
+        for res in reals:
+            lenght_of_testset += len(res)
+        print(lenght_of_testset)
+        print(reals)
+
+
+        guesses = self.get_models_clustering_results(reals, language, number_of_models)
+
+        #print(guesses)
+
+        clusters = []
+        mediods = []
+        for guess in guesses:
+            #print(guess)
+            #print(guess[1])
+            clusters.append(guess[0])
+            mediods.append(guess[1])
+        #print(clusters)
+        #print(mediods)
+
+        cluster_with_len = []
+
+        for cluster in clusters:
+            number_of_results = 0
+            for clust in cluster:
+                number_of_results += len(clust)
+            cluster_with_len.append((cluster, number_of_results))
+        #print(cluster_with_len)
+
+        cluster_with_len.sort(key=lambda x: x[1], reverse=True)
+
+        #print(cluster_with_len)
+        #print(cluster_with_len[0][0])
+
+        final_clustering = cluster_with_len[0][0]
+
+        for guess in cluster_with_len:
+            new_final_clustering = []
+            #print(guess)
+            #print(guess[0])
+            for i in range(0, len(guess[0])):
+                for cluster in final_clustering:
+                    if guess[0][i][0] in cluster:
+                        clust = list(cluster)
+
+                        for word in guess[0][i]:
+                            if word not in clust:
+                                clust.append(word)
+                        new_final_clustering.append(clust)
+
+            for cluster in final_clustering:
+                for clust in new_final_clustering:
+                    if clust[0] in cluster:
+                        for word in clust:
+                            if word not in cluster:
+                                cluster.append(word)
+        #print(final_clustering)
+
+        final_clustering.sort(key=len)
+        #print(final_clustering)
+
+        correct, wrong = self.get_clustering_result(final_clustering, reals)
+
+        return correct, wrong, lenght_of_testset
+
+    #Needs final clustering to be sorted on length of clusters.
+    #Does a lot of array handling to only have unique words in the clusters and compare the clusters with the real clusters
+    #by taking the cluster with the most corrects of a cluster class and combines these two clusters, removing this option from the other clusters.
+    # ONLY WORKS WITH 3 CLUSTERS!!!
+    def get_clustering_result(self, final_clustering, reals):
+
+        mediods = []
+        for cluster in final_clustering:
+            mediods.append(cluster[0])
+
+        #print(mediods)
+
+        all_unique_words = []
+        for cluster in final_clustering:
+            for word in cluster:
+                if word not in all_unique_words:
+                    all_unique_words.append(word)
+
+        unique_final_clustering = []
+
+        not_first = False
+
+        #print(all_unique_words)
+        for word in all_unique_words:
+            if word in mediods: #First word should be first mediod
+                if not_first:
+                    unique_final_clustering.append(inner_unique_cluster)
+                inner_unique_cluster = []
+                not_first = True
+            inner_unique_cluster.append(word) #Should not be a problem as first word should be first mediod
+        unique_final_clustering.append(inner_unique_cluster)
+
+        #print("testing")
+        #print(unique_final_clustering)
+
+
+
+        # Select first element of each cluster as element to compare against real cluster containing that element.
+        upper_testset = []
+        for test_cluster in reals:
+            upper_test_cluster = []
+            for word in test_cluster:
+                upper_test_cluster.append(word.upper())
+            upper_testset.append(upper_test_cluster)
+
+
+
+        # Find accuracy of clusters by taking the one with most corrects and remove from each cluster list
+        correct = []
+        wrong = []
+        i = 1
+        for real_cluster in upper_testset:
+            j = 1
+            for final_cluster in unique_final_clustering:
+                inner_correct = []
+                inner_wrong = []
+                for word in final_cluster:
+                    if word in real_cluster:
+                        inner_correct.append(word)
+                    else:
+                        inner_wrong.append(word)
+                correct.append([inner_correct, i, j, len(inner_correct)])
+                wrong.append([inner_wrong, i, j])
+                j += 1
+            i += 1
+
+        #print(correct)
+        correct.sort(key = lambda correct: correct[3], reverse = True)
+        #print(correct)
+
+        true_correct = []
+
+        first_correct = list(correct[0])
+        #print(first_correct)
+
+        new_correct = []
+        for i in range(0, len(correct)):
+            if first_correct[1] != correct[i][1] and first_correct[2] != correct[i][2]:
+                new_correct.append(correct[i])
+
+        correct = list(new_correct)
+        #print(correct)
+
+        second_correct = list(correct[0])
+        #print(second_correct)
+        new_correct = []
+        for i in range(0, len(correct)):
+            if second_correct[1] != correct[i][1] and second_correct[2] != correct[i][2]:
+                new_correct.append(correct[i])
+
+        #print(new_correct)
+        third_correct = list(new_correct[0])
+
+        true_correct.append(first_correct)
+        true_correct.append(second_correct)
+        true_correct.append(third_correct)
+
+        true_wrong = []
+        for i in range(0, len(wrong)):
+            if (first_correct[1] == wrong[i][1] and first_correct[2] == wrong[i][2]) or (second_correct[1] == wrong[i][1] and second_correct[2] == wrong[i][2]) or (third_correct[1] == wrong[i][1] and third_correct[2] == wrong[i][2]):
+                true_wrong.append(wrong[i])
+
+
+        #print("final")
+        #print(unique_final_clustering)
+        #print(true_correct)
+        #print(true_wrong)
+
+        final_correct = []
+        final_wrong = []
+        for correct in true_correct:
+            for word in correct[0]:
+                final_correct.append(word)
+
+        for wrong in true_wrong:
+            for word in wrong[0]:
+                final_wrong.append(word)
+
+        print(final_correct)
+        print(final_wrong)
+
+        return final_correct, final_wrong
+        # remove duplicates across clusters by taking the words in the one with fewest and clear those from the others.
+
+
+
+    def get_models_clustering_results(self, test_set, language, number_of_models):
+        name_array = []
+        not_wanted = ['npy', 'Readme.md']
+        onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language) if
+                     isfile(join(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language, f))]
+        for file_index in range(0, len(onlyfiles)):
+            if (not_wanted[0] in onlyfiles[file_index] or not_wanted[1] in onlyfiles[file_index]):
+                continue
+            else:
+                name_array.append(onlyfiles[file_index])
+
+        # print(name_array)
+        random.shuffle(name_array)
+        results = []
+        i = 0
+        for name in name_array:
+            if number_of_models > i:
+                print(name)
+                finished_model = FM.Finished_Models()
+                finished_model.get_model(
+                    os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language+'/' + name)
+                # If model knows less than 3 words we ignore it!
+                try:
+                    results.append(finished_model.get_model_clusters(test_set))
+                except IndexError:
+                    print("model knows to little")
+                i += 1
+            else:
+                continue
+
+        # print(results)
+        return results
+
     def set_weights(self, weight_list):
         self.weight_list = weight_list
 
