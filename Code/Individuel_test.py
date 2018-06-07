@@ -11,7 +11,12 @@ import csv
 
 
 def get_multiple_results(language, topn=1):
-    questions = "questions-words.txt"
+    if (language == 'English'):
+        questions = "questions-words.txt"
+    elif (language == 'Danish'):
+        questions = "danish-topology.txt"
+    else:
+        raise ValueError("unimplemented language")
     name_array = []
     not_wanted = ['npy', 'Readme.md']
     onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language) if
@@ -77,7 +82,12 @@ def get_multiple_results(language, topn=1):
 
 
 def get_model_similarities_results(language):
-    questions = "wordsim353.tsv"
+    if(language=='English'):
+        questions = "wordsim353.tsv"
+    elif(language=='Danish'):
+        questions = "danish-similarity.tsv"
+    else:
+        raise ValueError("unimplemented language")
     name_array = []
     not_wanted = ['npy', 'Readme.md']
     onlyfiles = [f for f in listdir(os.path.dirname(os.path.realpath(__file__)) + "/LeaningAlgoImpl/Models/"+language) if
