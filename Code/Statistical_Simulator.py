@@ -4,7 +4,6 @@ import random
 import os.path
 from os.path import isfile, join
 from os import listdir
-import keyboard
 
 """Accuracy experiments"""
 
@@ -287,17 +286,17 @@ def oov_experiment(language, startingpoint=5, endpoint=160, skips=5, iterations=
 
 
 """ Clustering experiments"""
-def generate_clusters_naive(startingpoint = 5, endpoint = 50, skips = 5, iterations = 5, test_set="Navneord-udsagnsord-tillægsord.csv"):
+def generate_clusters_naive(language, test_set, startingpoint = 5, endpoint = 50, skips = 5, iterations = 5):
     results = []
     for i in range(startingpoint, endpoint, skips):
         for j in range(0, iterations):
-            if (os.path.isfile("naive_clustering_danish_" + test_set + ".csv")):
-                f = open("naive_clustering_danish_" + test_set + ".csv", "a")
+            if (os.path.isfile("naive_clustering_"+language+"_" + test_set + + ".csv")):
+                f = open("naive_clustering_"+language+"_" + test_set + ".csv", "a")
             else:
-                f = open("naive_clustering_danish_" + test_set + ".csv", "w")
+                f = open("naive_clustering_"+language+"_" + test_set + ".csv", "w")
 
             ensamble_model = BS.boot_strap_aggregator()
-            correct, wrong, length_of_testset = ensamble_model.ensemble_clusters(test_set, number_of_models=i, clustering_type=0)
+            correct, wrong, length_of_testset = ensamble_model.ensemble_clusters(test_set, number_of_models=i, clustering_type=0, language=language)
             res = [[i, len(correct), len(wrong), length_of_testset]]
             print(res)
             results.append(res)
@@ -308,27 +307,27 @@ def generate_clusters_naive(startingpoint = 5, endpoint = 50, skips = 5, iterati
     print(results)
     return results
 
-def cluster_experiment_1(startingpoint=5, endpoint=160, skips=5, iterations=5):
+def cluster_experiment_1(language, startingpoint=5, endpoint=160, skips=5, iterations=5):
     test_sets = ["Navneord-udsagnsord-tillægsord.csv", "Frugt-dyr-køretøjer.csv", "Hus-værktøj-kropsdele.csv"]
     while True:
         start = startingpoint
-        generate_clusters_naive(startingpoint=startingpoint,
+        generate_clusters_naive(language, startingpoint=startingpoint,
                                                                 endpoint=random.randint(start + 1, endpoint),
                                                                 skips=random.randint(1, skips),
                                                                 iterations=random.randint(1, iterations),
                                                                 test_set=test_sets[random.randint(0, len(test_sets))])
 
-def generate_clusters_biggest_first(startingpoint = 5, endpoint = 50, skips = 5, iterations = 5, test_set="Navneord-udsagnsord-tillægsord.csv"):
+def generate_clusters_biggest_first(language, test_set, startingpoint = 5, endpoint = 50, skips = 5, iterations = 5):
     results = []
     for i in range(startingpoint, endpoint, skips):
         for j in range(0, iterations):
-            if (os.path.isfile("biggest_first_clustering_danish_" + test_set + ".csv")):
-                f = open("biggest_first_clustering_danish_" + test_set + ".csv", "a")
+            if (os.path.isfile("biggest_first_clustering_"+language+"_" + test_set + ".csv")):
+                f = open("biggest_first_clustering_"+language+"_" + test_set + ".csv", "a")
             else:
-                f = open("biggest_first_clustering_danish_" + test_set + ".csv", "w")
+                f = open("biggest_first_clustering_"+language+"_" + test_set + ".csv", "w")
 
             ensamble_model = BS.boot_strap_aggregator()
-            correct, wrong, length_of_testset = ensamble_model.ensemble_clusters(test_set, number_of_models=i, clustering_type=1)
+            correct, wrong, length_of_testset = ensamble_model.ensemble_clusters(test_set, number_of_models=i, clustering_type=1, language=language)
             res = [[i, len(correct), len(wrong), length_of_testset]]
             print(res)
             results.append(res)
@@ -339,11 +338,11 @@ def generate_clusters_biggest_first(startingpoint = 5, endpoint = 50, skips = 5,
     print(results)
     return results
 
-def cluster_experiment_2(startingpoint=5, endpoint=160, skips=5, iterations=5):
+def cluster_experiment_2(language, startingpoint=5, endpoint=160, skips=5, iterations=5):
     test_sets = ["Navneord-udsagnsord-tillægsord.csv", "Frugt-dyr-køretøjer.csv", "Hus-værktøj-kropsdele.csv"]
     while True:
         start = startingpoint
-        generate_clusters_biggest_first(startingpoint=startingpoint,
+        generate_clusters_biggest_first(language, startingpoint=startingpoint,
                                                                 endpoint=random.randint(start + 1, endpoint),
                                                                 skips=random.randint(1, skips),
                                                                 iterations=random.randint(1, iterations),
@@ -354,4 +353,4 @@ def cluster_experiment_2(startingpoint=5, endpoint=160, skips=5, iterations=5):
 
 
 
-if __name__ == "__main__": oov_experiment(startingpoint=33)
+if __name__ == "__main__": oov_experiment(startingpoint=33, language='English')
