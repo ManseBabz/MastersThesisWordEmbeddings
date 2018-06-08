@@ -35,6 +35,15 @@ def file_hum_sim_unpacker(data):
         pearson_correlation_value_array.append(line[4])
     return ensamble_count_array, spearman_correlation_value_array, pearson_correlation_value_array
 
+def file_clustering_unpacker(data):
+    model_name = []
+    acc_results_array = []
+    for line in data:
+        model_name.append(line[0])
+        temp_acc = (line[1] / line[3])
+        acc_results_array.append(temp_acc)
+    return model_name, acc_results_array
+
 def file_oov_unpacker(data):
     ensamble_count_array=[]
     oov_value_array=[]
@@ -261,9 +270,21 @@ def oov_plot(data_file_name, save_file_name):
     plt.savefig('Plots/' + save_file_name)
     plt.close()
 
+def plot_clustering_plot(data_file_name, save_file_name):
+    file_parth = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'/'+data_file_name
+    data = np.genfromtxt(file_parth, delimiter=",", dtype=None, encoding='UTF-8')
+    ensamble_count_array, acc_results_array = file_clustering_unpacker(data)
+    plt.scatter(ensamble_count_array, acc_results_array)
+    plt.ylabel('Accuracy')
+    plt.xlabel('Model type')
+
+
+    plt.savefig('Plots/'+save_file_name)
+    plt.close()
 
 def plot_all_hardcoded():
     #English
+    """
     plot_acc_plot('Ensamble_test_results_English.csv', 'Ensamble_test_results_English')
     plot_acc_plot('tie_breaking_weighted_majority_vote_English.csv', 'tie_breaking_weighted_majority_vote_English')
     plot_acc_plot('weighted_majority_vote_Ensamble_test_results_English.csv', 'weighted_majority_vote_Ensamble_test_results_English')
@@ -320,7 +341,7 @@ def plot_all_hardcoded():
     oov_plot('oov_test_English.csv', 'oov_test_english')
 
     #Danish
-    """
+    
     plot_acc_plot('Ensamble_test_results_Danish.csv', 'Ensamble_test_results_Danish')
     plot_acc_plot('tie_breaking_weighted_majority_vote_Danish.csv', 'tie_breaking_weighted_majority_vote_Danish')
     plot_acc_plot('weighted_majority_vote_Ensamble_test_results_Danish.csv',
@@ -365,8 +386,20 @@ def plot_all_hardcoded():
                                        'weight_based_on_total_oov_ignore_oov_human_similarity_stats_Danish.csv'],
                                       ['red', 'blue', 'black', 'green'],
                                       'allSloaps_pearson_Danish_data', with_datapoints=True)
-                                      """
-
+                                      
+    """
+    plot_clustering_plot('biggest_first_clustering_danish_Frugt-dyr-køretøjer.csv.csv',
+                         'biggest_first_clustering_danish_Frugt-dyr-køretøjer')
+    plot_clustering_plot('biggest_first_clustering_danish_Hus-værktøj-kropsdele.csv.csv',
+                         'biggest_first_clustering_danish_Hus-værktøj-kropsdele')
+    plot_clustering_plot('biggest_first_clustering_danish_Navneord-udsagnsord-tillægsord.csv.csv',
+                         'biggest_first_clustering_danish_Navneord-udsagnsord-tillægsord')
+    plot_clustering_plot('naive_clustering_danish_Frugt-dyr-køretøjer.csv.csv',
+                         'naive_clustering_danish_Frugt-dyr-køretøjer')
+    plot_clustering_plot('naive_clustering_danish_Hus-værktøj-kropsdele.csv.csv',
+                         'naive_clustering_danish_Hus-værktøj-kropsdele')
+    plot_clustering_plot('naive_clustering_danish_Navneord-udsagnsord-tillægsord.csv.csv',
+                         'naive_clustering_danish_Navneord-udsagnsord-tillægsord')
 
 
 if __name__ == "__main__": plot_all_hardcoded()

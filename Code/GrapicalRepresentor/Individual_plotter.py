@@ -40,11 +40,9 @@ def file_clustering_unpacker(data):
     acc_results_array = []
     for line in data:
         model_name.append(line[0])
-        temp_acc = (line[8] / (line[9] + line[8]))
+        temp_acc = (line[8] / line[10])
         acc_results_array.append(temp_acc)
     return model_name, acc_results_array
-
-
 
 
 def plot_acc_plot(data_file_name, save_file_name):
@@ -82,7 +80,7 @@ def plot_hum_sim_plot(data_file_name, save_file_name):
 def plot_clustering_plot(data_file_name, save_file_name):
     file_parth = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'/'+data_file_name
     data = np.genfromtxt(file_parth, delimiter=",", dtype=None)
-    ensamble_count_array, acc_results_array = file_acc_unpacker(data)
+    ensamble_count_array, acc_results_array = file_clustering_unpacker(data)
     plt.scatter(ensamble_count_array, acc_results_array)
     plt.ylabel('Accuracy')
     plt.xlabel('Model type')
@@ -94,9 +92,9 @@ def plot_clustering_plot(data_file_name, save_file_name):
 
 
 def plot_all_hardcoded():
-    plot_acc_plot('individual_models_acc_Danish.csv', 'individual_models_acc_danish')
+    #plot_acc_plot('individual_models_acc_Danish.csv', 'individual_models_acc_danish')
 
-    plot_hum_sim_plot('individual_models_human_similarity_Danish.csv','individual_models_human_similarity_danish')
+    #plot_hum_sim_plot('individual_models_human_similarity_Danish.csv','individual_models_human_similarity_danish')
 
     plot_clustering_plot('individual_models_clustering_DanishFrugt-dyr-køretøjer.csv.csv',
                          'individual_models_clustering_danishFrugt-dyr-køretøjer')
