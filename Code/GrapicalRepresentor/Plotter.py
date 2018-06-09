@@ -276,7 +276,25 @@ def plot_clustering_plot(data_file_name, save_file_name):
     ensamble_count_array, acc_results_array = file_clustering_unpacker(data)
     plt.scatter(ensamble_count_array, acc_results_array)
     plt.ylabel('Accuracy')
-    plt.xlabel('Model type')
+    plt.xlabel('#Models in ensemble ')
+
+    spearman_result = stats.spearmanr(ensamble_count_array, acc_results_array)
+    pearson_correlation = stats.pearsonr(ensamble_count_array, acc_results_array)
+    r = r_mesurement(ensamble_count_array, acc_results_array)
+    se = standard_error(r, len(ensamble_count_array))
+    t = t_value(r, se)
+    rejected, t_stats = t_test(t, len(ensamble_count_array))
+
+    text_file = save_file_name + '_stats_properties'
+    text_file = open('statsData/' + text_file + '.txt', "w")
+    text_file.write("spearman correlation result: " + str(spearman_result) + '\n')
+    text_file.write("pearson correlation result: " + str(pearson_correlation) + '\n')
+    text_file.write("r value: " + str(r) + '\n')
+    text_file.write("Standard errort: " + str(se) + '\n')
+    text_file.write("t-value: " + str(pearson_correlation) + '\n')
+    text_file.write("t-statistics: " + str(t_stats) + '\n')
+    text_file.write("Is h0 rejected?: " + str(rejected) + '\n')
+    text_file.close()
 
 
     plt.savefig('Plots/'+save_file_name)
